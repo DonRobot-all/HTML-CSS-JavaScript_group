@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Приветствие</title>
+    <style>
+        body {
+            background-color: #f0f8ff;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding-top: 60px;
+        }
+
+        h1 {
+            color: #2b6cb0;
+        }
+
+        button {
+            background-color: #38a169;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #2f855a;
+        }
+    </style>
+</head>
+<body>
+
+    <h1 id="result">Нажми на кнопку, чтобы начать</h1>
+    <button onclick="startGreeting()">Начать</button>
+
+    <script>
+        function startGreeting() {
+            // Спрашиваем данные у пользователя
+            let name = prompt("Как тебя зовут?");
+            let age = prompt("Сколько тебе лет?");
+
+            // Собираем текст сообщения
+            let message = "Привет, " + name + "! ";
+
+            if (age >= 12) {
+                message = message + "Ты уже готов изучать программирование!";
+            } else {
+                message = message + "Скоро подрастёшь и тоже начнёшь программировать!";
+            }
+
+            // Выводим результат на страницу вместо заголовка
+            document.getElementById("result").textContent = message;
+        }
+    </script>
+
+</body>
+</html>

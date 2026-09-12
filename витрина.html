@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Витрина</title>
+    <style>
+        body {
+            background-color: #fdf6ec;
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+
+        h1 {
+            color: #5a3e1b;
+        }
+
+        /* Контейнер для ряда карточек */
+        .shelf {
+            display: flex;
+            justify-content: center;
+            align-items: stretch;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-top: 30px;
+        }
+
+        /* Одна карточка */
+        .item {
+            background-color: #ffffff;
+            border: 2px solid #d9b382;
+            border-radius: 12px;
+            padding: 16px;
+            width: 180px;
+        }
+
+        .item img {
+            width: 100%;
+            border-radius: 8px;
+        }
+
+        button {
+            background-color: #d97742;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #b8602f;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Наша витрина</h1>
+
+    <div class="shelf">
+
+        <div class="item">
+            <img src="https://via.placeholder.com/150" alt="Кружка">
+            <h2>Кружка</h2>
+            <p>350 ₽</p>
+            <button>В корзину</button>
+        </div>
+
+        <div class="item">
+            <img src="https://via.placeholder.com/150" alt="Блокнот">
+            <h2>Блокнот</h2>
+            <p>220 ₽</p>
+            <button>В корзину</button>
+        </div>
+
+        <div class="item">
+            <img src="https://via.placeholder.com/150" alt="Стикеры">
+            <h2>Стикеры</h2>
+            <p>90 ₽</p>
+            <button>В корзину</button>
+        </div>
+
+    </div>
+
+</body>
+</html>
