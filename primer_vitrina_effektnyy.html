@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Витрина</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* Было: сплошной фон. Стало: градиент */
+        body {
+            background: linear-gradient(135deg, #fdf6ec, #fbe4d0);
+            font-family: 'Nunito', Arial, sans-serif;
+            text-align: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        h1 {
+            color: #5a3e1b;
+            font-weight: 800;
+            padding-top: 20px;
+        }
+
+        .shelf {
+            display: flex;
+            justify-content: center;
+            align-items: stretch;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-top: 30px;
+        }
+
+        .item {
+            background-color: #ffffff;
+            border: 2px solid #d9b382;
+            border-radius: 12px;
+            padding: 16px;
+            width: 180px;
+
+            /* Новое: тень + плавный переход */
+            box-shadow: 0 6px 16px rgba(90, 62, 27, 0.2);
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+        }
+
+        /* Новое: карточка товара приподнимается при наведении */
+        .item:hover {
+            transform: translateY(-8px) scale(1.03);
+            box-shadow: 0 14px 24px rgba(90, 62, 27, 0.3);
+        }
+
+        .item img {
+            width: 100%;
+            border-radius: 8px;
+        }
+
+        button {
+            background-color: #d97742;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-family: 'Nunito', Arial, sans-serif;
+            font-weight: 700;
+            cursor: pointer;
+
+            box-shadow: 0 4px 10px rgba(217, 119, 66, 0.4);
+            transition: transform 0.2s ease, background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #b8602f;
+            transform: scale(1.08);
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Наша витрина</h1>
+
+    <div class="shelf">
+
+        <div class="item">
+            <img src="https://via.placeholder.com/150" alt="Кружка">
+            <h2>Кружка</h2>
+            <p>350 ₽</p>
+            <button>🛒 В корзину</button>
+        </div>
+
+        <div class="item">
+            <img src="https://via.placeholder.com/150" alt="Блокнот">
+            <h2>Блокнот</h2>
+            <p>220 ₽</p>
+            <button>🛒 В корзину</button>
+        </div>
+
+        <div class="item">
+            <img src="https://via.placeholder.com/150" alt="Стикеры">
+            <h2>Стикеры</h2>
+            <p>90 ₽</p>
+            <button>🛒 В корзину</button>
+        </div>
+
+    </div>
+
+</body>
+</html>

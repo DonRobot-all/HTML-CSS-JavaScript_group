@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Обо мне</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* Было: сплошной background-color. Стало: градиент */
+        body {
+            background: linear-gradient(135deg, #a1c4fd, #c2e9fb);
+            font-family: 'Nunito', Arial, sans-serif;
+            text-align: center;
+            min-height: 100vh;
+            margin: 0;
+            padding-top: 1px;
+        }
+
+        .card {
+            background-color: #ffffff;
+            border-radius: 16px;
+            padding: 20px;
+            margin: 40px auto;
+            width: 320px;
+            border: 2px solid #4da6ff;
+
+            /* Новое: тень — карточка "приподнимается" над фоном */
+            box-shadow: 0 8px 20px rgba(0, 76, 153, 0.25);
+
+            /* Новое: плавный переход для hover-эффекта ниже */
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        /* Новое: при наведении карточка чуть приподнимается и тень усиливается */
+        .card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 14px 28px rgba(0, 76, 153, 0.35);
+        }
+
+        h1 {
+            color: #005c99;
+            font-weight: 800;
+        }
+
+        .hobbies {
+            text-align: left;
+            display: inline-block;
+        }
+
+        button {
+            background-color: #ff7043;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-family: 'Nunito', Arial, sans-serif;
+            font-weight: 700;
+            cursor: pointer;
+
+            /* Новое: тень на самой кнопке + плавность */
+            box-shadow: 0 4px 10px rgba(255, 112, 67, 0.4);
+            transition: transform 0.2s ease, background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #e64a19;
+            /* Новое: кнопка слегка увеличивается при наведении */
+            transform: scale(1.06);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h1>Привет, меня зовут Аня!</h1>
+        <p>Мне 12 лет, я учусь программировать и очень люблю котиков. 🐱</p>
+
+        <hr>
+
+        <p><span style="color: #ff7043; font-weight: bold;">Мои увлечения:</span></p>
+        <ul class="hobbies">
+            <li>🎨 Рисование</li>
+            <li>💻 Программирование</li>
+            <li>🎲 Настольные игры</li>
+        </ul>
+
+        <p>Подробнее обо мне на <a href="https://example.com">моей странице</a>.</p>
+
+        <button>✉️ Написать мне</button>
+    </div>
+
+</body>
+</html>
