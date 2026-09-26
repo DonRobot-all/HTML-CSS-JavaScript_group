@@ -32,6 +32,16 @@
             transform: scale(2.06);
             transition: 2s ease;
         }
+        form {
+            width: 320px;
+            padding: 24px;
+            text-align: left;
+        }
+        input, textarea,select{
+            width: 100%;
+            padding: 10px;
+     
+        }
     </style>
 </head>
 <body>
@@ -50,5 +60,37 @@
     <button>Игра в доту срочно!</button>
 </div>
 
+    <div>
+        <form id="feedbackForm">
+            <label> Как Вас зовут? </label>
+            <input type="text" id="nameField" placeholder="Введите имя" required>
+            
+            <label> Email </label>
+            <input type="text" id="emailField" placeholder="mail@example.com" required>
+
+            <label> Тема обращения </label>
+            <select id="topicField">
+                <option>Вопрос</option>
+                <option>Предложение</option>
+                <option>Жалоба</option>
+            </select>
+
+            <button type="submit">Отправить!</button>
+
+        </form>
+
+    </div>
+    <p id="resultMessage">Тут будет сообщение</p>
+    <script>
+        const form = document.getElementById("feedbackForm");
+        form.addEventListener("submit", function(event){
+            event.preventDefault();
+            let name = document.getElementById("nameField").value;
+            let email = document.getElementById("emailField").value;
+            let topic = document.getElementById("topicField").value;
+            let message = "Спасибо, " + name + "Ваше сообщение " + topic + "принято, ответ будет направлен на " + email;
+            document.getElementById("resultMessage").textContent = message;
+        });
+    </script>
 </body>
 </html>

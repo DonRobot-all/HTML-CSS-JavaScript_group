@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Обратная связь</title>
+    <style>
+        body {
+            background-color: #f0f8ff;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding-top: 40px;
+        }
+
+        form {
+            background-color: white;
+            width: 320px;
+            margin: 0 auto;
+            padding: 24px;
+            border-radius: 16px;
+            box-shadow: 0 8px 20px rgba(0, 76, 153, 0.2);
+            text-align: left;
+        }
+
+        label {
+            font-weight: bold;
+            color: #005c99;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 10px;
+            margin: 6px 0 16px 0;
+            border: 2px solid #cbd5e0;
+            border-radius: 8px;
+            font-size: 15px;
+            box-sizing: border-box;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            border-color: #4da6ff;
+            outline: none;
+        }
+
+        button {
+            background-color: #ff7043;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        button:hover {
+            background-color: #e64a19;
+        }
+
+        #resultMessage {
+            width: 320px;
+            margin: 20px auto 0 auto;
+            font-weight: bold;
+            color: #005c99;
+        }
+    </style>
+</head>
+<body>
+
+    <form id="feedbackForm">
+        <label for="nameField">Как вас зовут?</label>
+        <input type="text" id="nameField" placeholder="Введите имя" required>
+
+        <label for="emailField">Email</label>
+        <input type="email" id="emailField" placeholder="mail@example.com" required>
+
+        <label for="topicField">Тема обращения</label>
+        <select id="topicField">
+            <option value="Вопрос">Вопрос</option>
+            <option value="Предложение">Предложение</option>
+            <option value="Жалоба">Жалоба</option>
+        </select>
+
+        <label for="messageField">Сообщение</label>
+        <textarea id="messageField" rows="4" placeholder="Ваше сообщение..." required></textarea>
+
+        <button type="submit">Отправить</button>
+    </form>
+
+    <p id="resultMessage"></p>
+
+    <script>
+        // Находим форму и "слушаем" момент отправки
+        const form = document.getElementById("feedbackForm");
+
+        form.addEventListener("submit", function (event) {
+            // Отменяем стандартную перезагрузку страницы
+            event.preventDefault();
+
+            // Считываем значения полей
+            let name = document.getElementById("nameField").value;
+            let topic = document.getElementById("topicField").value;
+
+            // Формируем и показываем сообщение
+            let message = "Спасибо, " + name + "! Ваше обращение по теме «" + topic + "» принято.";
+            document.getElementById("resultMessage").textContent = message;
+        });
+    </script>
+
+</body>
+</html>
