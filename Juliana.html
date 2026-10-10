@@ -1,0 +1,139 @@
+<DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset = 'UTF-8'>
+    <title> Моя первая страница </title>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400..700&display=swap"
+ rel="stylesheet">
+
+<style>
+        body {
+            /* background-color:bisque; */
+            background: linear-gradient(135deg, rgb(112, 102,248), rgba(5,17, 182, 0.267));
+            min-height: 110hv
+        }
+        div{
+            font-family: "Caveat";
+            border: 4px solid;
+            border-radius: 30px;
+            margin-left: 40%;
+            margin-right: 40%;
+            margin-top: 5px;
+            padding-right: 30px;
+            padding-left: 30px;
+            padding-top: 30px;
+            padding-bottom: 30px;
+            text-align: center;
+            background-color: rgb(255, 228, 196);
+            box-shadow: 30px 30px 100px rgba(1,7,78,0.)
+        }
+        button:hover{
+            transform: scale(2.06);
+            /* transform: translateY(100px); */
+            transition: transform 1s ease;
+        }
+        form {
+            background-color: rgb(255, 228, 196);
+            text-align: left;
+        }
+        input, textaarea, select {
+            width: 100%;
+            padding: 10px;
+            font-size: 15px;
+        }
+        tr.today {
+            background-color: #fff700;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+<div>
+    <form id = 'newuser'> 
+        <label> Как вас зовут? </label>
+        <input type="text" id='nameField' placeholder="Введите имя" required>
+        
+        <label> Сколько вам лет? </label>
+        <input type="number" id="numberField" placeholder="Введите возраст" required>
+
+        <label> В каком вы классе? </label>
+        <input type="text" id='classField' placeholder="Введите класс" required>
+        <button type='submit'> 'Кнопка' </button>
+        <button type="button" id="resetBtn">Сбросить</button>
+
+<h2 id="resultTitle"></h2>
+            <table>
+                <thead>
+                    <tr><th>День</th><th>Уроки</th></tr>
+                </thead>
+                <tbody id="scheduleBody"></tbody>
+            </table>
+    </form>
+<script>
+        const schedules = {
+            "5А": [
+                { day: "Понедельник", lessons: ["Математика", "Русский язык", "Физкультура"] },
+                { day: "Вторник",     lessons: ["Английский язык", "История", "Информатика"] },
+                { day: "Среда",       lessons: ["Литература", "Биология", "Музыка"] },
+                { day: "Четверг",     lessons: ["Математика", "География", "ИЗО"] },
+                { day: "Пятница",     lessons: ["Русский язык", "Технология", "Физкультура"] },
+            ],
+            "5Б": [
+                { day: "Понедельник", lessons: ["Русский язык", "Математика", "Музыка"] },
+                { day: "Вторник",     lessons: ["История", "Английский язык", "Физкультура"] },
+                { day: "Среда",       lessons: ["Биология", "Литература", "Информатика"] },
+                { day: "Четверг",     lessons: ["География", "Математика", "Технология"] },
+                { day: "Пятница",     lessons: ["ИЗО", "Русский язык", "Физкультура"] },
+            ],
+            "6А": [
+                { day: "Понедельник", lessons: ["Алгебра", "Физика", "Английский язык"] },
+                { day: "Вторник",     lessons: ["Русский язык", "История", "Физкультура"] },
+                { day: "Среда",       lessons: ["Геометрия", "Биология", "Информатика"] },
+                { day: "Четверг",     lessons: ["Литература", "Химия", "География"] },
+                { day: "Пятница",     lessons: ["Алгебра", "Обществознание", "Физкультура"] },
+            ],
+};
+        const dayNames = ["Воскресенье", "Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота"]
+        const todayName = dayNames[new Date().getDay()]
+        const form = document.getElementById('newuser');  // тут имя формы
+        form.addEventListener('submit', function(event){
+            event.preventDefault();
+            let name = document.getElementById('nameField').value;
+            let age = document.getElementById('numberField').value;
+            let classj = document.getElementById('classField').value;
+            let scheduleBody = document.getElementById('scheduleBody');
+            if ( name === '' || age === '') {
+                return 0
+            }
+            let cl = schedules[classj]
+            if (!cl){
+                alert("Такого класса нет")
+                return
+            }
+            scheduleBody.innerHTML = "";
+            for (let sch of cl){
+                const row = document.createElement("tr");
+                if (sch.day === todayName){
+                    row.classList.add("today");
+                }
+                const day = document.createElement("td");
+                day.textContent = sch.day;
+                const subject = document.createElement("td");
+                subject.textContent = sch.lessons.join(", ");
+                row.appendChild(day);
+                row.appendChild(subject);
+                scheduleBody.appendChild(row);
+                
+            }
+            
+            document.getElementById('resultTitle').textContent = name + ", вот твоё расписание", classj;
+        });
+        resetBtn.addEventListener("click", function() {
+            form.reset()
+            document.getElementById('resultTitle').textContent = ''
+        })
+</script>
+</body>
+</html>
