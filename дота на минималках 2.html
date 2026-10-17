@@ -7,31 +7,66 @@
     body {
         margin: 0;
         min-height: 100vh;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        font-family: Arial, sans-serif;
+        background: #260044;
         color: white;
-        background-color: #2c3e50;
+        }
 
-        transition: background-color 0.6s ease;
+    .page-background {
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+        /* overflow: hidden; */
+        /* background: #260044; */
     }
 
-    /* .hero-icon {
-        font-size: 100px;
-        transition: all 0.4s ease;
+    .hero-bg {
+        position: absolute;
+        inset: 0;
+        background-size: cover;
+        /* background-position: center;
+        background-repeat: no-repeat; */
+        opacity: 0;
+        transition: opacity 1.5s ease-in-out;
+    }
+
+    .hero-bg.active {
+        opacity: 1;
+    }
+
+    /* .page-background::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+            90deg,
+            rgba(30, 0, 50, 0.8),
+            rgba(30, 0, 50, 0.35)
+        );
+        pointer-events: none;
     } */
+
+    .site-content {
+        position: relative;
+        z-index: 1;
+        min-height: 100vh;
+    }
+
+    /* .hero {
+        min-height: 400px;
+        padding: 50px;
+    } */
+
     .hero-icon {
         width: 160px;
         transition: all 0.4s ease;
     }
-    form {
+    .site-content {
         background-color: rgba(255, 255, 255, 0.1);
         padding: 24px;
         border-radius: 16px;
         width: 280px;
         text-align: center;
+        margin-left: 40%;
 
         transition: background-color 0.6s ease;
     }
@@ -93,31 +128,43 @@
 </style>
 </head>
 <body>
+    <!-- Теги для фона, меняются -->
+    <div class="page-background">
+        <div class="hero-bg active"
+            style="background-image: url('images/1.jpeg')"></div>
 
-    <!-- <div class="hero-icon" id="heroIcon">🎮</div> -->
-    <img class="hero-icon" id="heroIcon" src="images/Dota.png">
+        <div class="hero-bg"
+            style="background-image: url('images/2.jpg')"></div>
 
-    <form id="heroForm">
-        <input type="text" id="nickname" placeholder="Твой ник" required>
+        <div class="hero-bg"
+            style="background-image: url('images/3.jpg')"></div>
+    </div>
 
-        <select id="heroSelect">
-            <option value="Pudge">Pudge</option>
-            <option value="Shadow_Field">Shadow_Field</option>
-            <option value="Witch_Doctor">Witch Doctor</option>
-            <option value="Shadow_Shaman">Shadow Shaman</option>
-        </select>
+    <!-- Всё остальное, что было до этого -->
+    <div class="site-content">
+        <img class="hero-icon" id="heroIcon" src="images/Dota.png">
 
-        <button type="submit">Выбрать героя</button>
-    </form>
+        <form id="heroForm">
+            <input type="text" id="nickname" placeholder="Твой ник" required>
 
-    <!-- Это нужно для будущего вывода текста, изначально на странице - пусто -->
-    <p id="greeting"></p> 
-    <div class="stats">
-        <div class="stat-label"> Здоровье: <span id=hpValue></span></div>
-        <div class="bar-background"><div class="bar-fill" id="hpBar" style="background-color: #2ecc71;"></div></div>
+            <select id="heroSelect">
+                <option value="Pudge">Pudge</option>
+                <option value="Shadow_Field">Shadow_Field</option>
+                <option value="Witch_Doctor">Witch Doctor</option>
+                <option value="Shadow_Shaman">Shadow Shaman</option>
+            </select>
 
-        <div class="stat-label"> Урон: <span id=damageValue></span></div>
-        <div class="bar-background"><div class="bar-fill" id="damageBar" style="background-color: #e74c3c;"></div></div></div>    
+            <button type="submit">Выбрать героя</button>
+        </form>
+
+        <!-- Это нужно для будущего вывода текста, изначально на странице - пусто -->
+        <p id="greeting"></p> 
+        <div class="stats">
+            <div class="stat-label"> Здоровье: <span id=hpValue></span></div>
+            <div class="bar-background"><div class="bar-fill" id="hpBar" style="background-color: #2ecc71;"></div></div>
+
+            <div class="stat-label"> Урон: <span id=damageValue></span></div>
+            <div class="bar-background"><div class="bar-fill" id="damageBar" style="background-color: #e74c3c;"></div></div></div>    
     </div>
     <script>
         const heroes = {
@@ -147,12 +194,24 @@
 
             const hpPercent = (hero.hp / maxHp) * 100;
             const damagePercent = (hero.damage / maxDamage) * 100;
-            alert(hpPercent, damagePercent)
             document.getElementById("hpBar").style.width = hpPercent + "%";
             document.getElementById("damageBar").style.width = damagePercent + "%";
         });
     </script>
 
+    <script>
+        const slides = document.querySelectorAll(".hero-bg");
+
+        let currentSlide = 0;
+
+        setInterval(() => {
+            slides[currentSlide].classList.remove("active");
+
+            currentSlide = (currentSlide + 1) % slides.length;
+
+            slides[currentSlide].classList.add("active");
+        }, 5000);
+</script>
 </body>
 </html>
 

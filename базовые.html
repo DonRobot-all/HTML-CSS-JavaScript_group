@@ -1,0 +1,78 @@
+
+ <!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Рисовалка</title>
+    <style>
+        #canvas {
+            background-color: bisque;
+            border-radius: 12px;
+            width: 500;
+            height: 500;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"> </canvas>
+    <div class="controls">
+        <input type="color" id="colorPicker", value="#1a1a2e">
+
+    </div>
+
+<script>
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext('2d')
+
+    const colorPicker = document.getElementById("colorPicker")
+
+    let isDrawing = false;
+    let lastX = 0;
+    let lastY = 0;
+
+    canvas.addEventListener('mousedown', function(event){
+        isDrawing = true;
+        const square = canvas.getBoundingClientRect();
+        lastX = event.clientX - square.left;
+        lastY = event.clientY - square.top;
+    })
+
+    canvas.addEventListener('mousemove', function(event){
+        if (isDrawing == false){
+            return;
+        }
+        const square = canvas.getBoundingClientRect();
+        const currentX = event.clientX - square.left;
+        const currentY = event.clientY - square.top;
+        ctx.strokeStyle = colorPicker.value;
+        ctx.lineWidth = 4;
+        // ctx.strokeStyle = colorPicker.value;
+
+        ctx.beginPath();
+        ctx.moveTo(lastX, lastY);
+        ctx.lineTo(currentX, currentY);
+        ctx.stroke();
+
+        lastX = currentX;
+        lastY = currentY;
+    })
+
+    canvas.addEventListener("mouseup", function(event){
+        isDrawing = false;
+    })
+
+    canvas.addEventListener("mouseleave", function(event){
+        isDrawing = false;
+    })
+
+    // canvas.getContext('2d')
+    // canvas.getBoundingClientRect() // left, top, width  height
+    // beginPath() // начинает новый путь
+    // moveTo(коордX, КоординатаY) начальная точка линии
+    // lineTo() добавляет прямой отрезок
+    // stroke() обводит построенный путь
+
+
+</script>
+</body>
+</html>

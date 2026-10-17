@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Рисовалка</title>
+<style>
+    body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background-color: #1a1a2e;
+        font-family: Arial, sans-serif;
+        color: white;
+    }
+
+    h1 {
+        margin-bottom: 10px;
+    }
+
+    #canvas {
+        background-color: #ffffff;
+        border-radius: 12px;
+        cursor: crosshair;
+        touch-action: none;
+    }
+
+    .controls {
+        margin-top: 14px;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+
+    button {
+        padding: 10px 16px;
+        border: none;
+        border-radius: 8px;
+        background-color: #e67e22;
+        color: white;
+        cursor: pointer;
+        font-size: 14px;
+    }
+
+    button:hover {
+        background-color: #d35400;
+    }
+
+    input[type="color"] {
+        width: 44px;
+        height: 36px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+    }
+</style>
+</head>
+<body>
+
+    <h1>🖌️ Рисовалка на JavaScript</h1>
+
+    <canvas id="canvas" width="500" height="400"></canvas>
+
+    <div class="controls">
+        <input type="color" id="colorPicker" value="#e67e22">
+        <button id="clearBtn">Очистить</button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById("canvas");
+        const ctx = canvas.getContext("2d");
+
+        const colorPicker = document.getElementById("colorPicker");
+        const clearBtn = document.getElementById("clearBtn");
+
+        let isDrawing = false;
+        let lastX = 0;
+        let lastY = 0;
+
+        canvas.addEventListener("mousedown", function (event) {
+            isDrawing = true;
+            const rect = canvas.getBoundingClientRect();
+            lastX = event.clientX - rect.left;
+            lastY = event.clientY - rect.top;
+        });
+
+        canvas.addEventListener("mousemove", function (event) {
+            if (!isDrawing) {
+                return;
+            }
+
+            const rect = canvas.getBoundingClientRect();
+            const currentX = event.clientX - rect.left;
+            const currentY = event.clientY - rect.top;
+
+            ctx.strokeStyle = colorPicker.value;
+            ctx.lineWidth = 4;
+            ctx.lineCap = "round";
+
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(currentX, currentY);
+            ctx.stroke();
+
+            lastX = currentX;
+            lastY = currentY;
+        });
+
+        canvas.addEventListener("mouseup", function () {
+            isDrawing = false;
+        });
+
+        canvas.addEventListener("mouseleave", function () {
+            isDrawing = false;
+        });
+
+        clearBtn.addEventListener("click", function () {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        });
+    </script>
+
+</body>
+</html>
