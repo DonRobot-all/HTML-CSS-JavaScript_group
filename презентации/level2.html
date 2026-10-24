@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<!-- УРОВЕНЬ 2 · ЛЁГКИЙ
+     Страница с карточками бойцов.
+     Что понадобится: header, main, footer, div, class, цвета, отступы (padding, margin),
+     рамки и скругления (border, border-radius), flex, :hover -->
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- чтобы страница выглядела хорошо на телефоне -->
+  <title>Мои бойцы</title>
+
+  <style>
+    /* Сбрасываем лишние отступы у всех элементов */
+    * {
+      box-sizing: border-box;  /* ширина включает padding и border */
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: #1d1b4b;
+      color: #ffffff;
+      font-family: Verdana, sans-serif;
+    }
+
+    /* ШАПКА */
+    header {
+      background: #6a1fd0;
+      padding: 30px 20px;
+      text-align: center;
+    }
+    header h1 { font-size: 40px; }
+    header p  { margin-top: 10px; color: #ffe14d; }
+
+    /* ОСНОВНАЯ ЧАСТЬ */
+    main {
+      max-width: 1000px;
+      margin: 30px auto;      /* auto по бокам = по центру */
+      padding: 0 20px;
+    }
+    main h2 { margin-bottom: 20px; }
+
+    /* Контейнер для карточек: flex ставит их в ряд */
+    .cards {
+      display: flex;
+      gap: 20px;              /* расстояние между карточками */
+      flex-wrap: wrap;        /* на узком экране карточки переносятся */
+    }
+
+    /* Одна карточка */
+    .card {
+      flex: 1 1 250px;        /* растягивается, но не уже 250px */
+      background: #2d2a6e;
+      border: 3px solid #ffe14d;
+      border-radius: 16px;    /* скруглённые углы */
+      padding: 20px;
+      text-align: center;
+    }
+
+    /* Эффект при наведении мышки */
+    .card:hover {
+      background: #3e3a94;
+      transform: translateY(-6px);   /* приподнимается */
+    }
+
+    .icon  { font-size: 64px; }
+    .card h3 { margin: 10px 0; color: #ffe14d; }
+    .rank  { color: #8ff0a4; font-weight: bold; margin-top: 10px; }
+
+    /* Разные цвета рамок для разных карточек */
+    .electric { border-color: #4dd2ff; }
+    .stone    { border-color: #c9a27a; }
+    .shadow   { border-color: #d98cff; }
+
+    /* ПОДВАЛ */
+    footer {
+      text-align: center;
+      padding: 20px;
+      color: #aaaadd;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>Мои бойцы</h1>
+    <p>Придуманные герои для моей игры</p>
+  </header>
+
+  <main>
+    <h2>Выбери бойца</h2>
+
+    <div class="cards">
+
+      <!-- Карточка 1 -->
+      <div class="card electric">
+        <div class="icon">⚡</div>
+        <h3>Искра</h3>
+        <p>Быстрая героиня. Стреляет молниями и легко уходит от врагов.</p>
+        <p class="rank">Скорость: высокая</p>
+      </div>
+
+      <!-- Карточка 2 -->
+      <div class="card stone">
+        <div class="icon">🪨</div>
+        <h3>Глыба</h3>
+        <p>Медленный, но очень прочный. Защищает команду своим телом.</p>
+        <p class="rank">Здоровье: огромное</p>
+      </div>
+
+      <!-- Карточка 3 -->
+      <div class="card shadow">
+        <div class="icon">🥷</div>
+        <h3>Тень</h3>
+        <p>Появляется из кустов и наносит быстрый удар по ближнему врагу.</p>
+        <p class="rank">Скрытность: отличная</p>
+      </div>
+
+    </div>
+  </main>
+
+  <footer>
+    <p>Фан-страница. Сделано на HTML и CSS.</p>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<!-- УРОВЕНЬ 2 · ЛЁГКИЙ · «Выбор бойца»
+     Что нужно знать: массив объектов, цикл for...of, createElement, append,
+     classList, style.width, Math.random, шаблонные строки -->
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Выбор бойца</title>
+
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: #1d1b4b;
+      color: #fff;
+      font-family: Verdana, sans-serif;
+      padding: 24px 16px 40px;
+    }
+    main { max-width: 900px; margin: 0 auto; }
+    h1 { color: #ffe14d; text-align: center; }
+    .hint { text-align: center; color: #b4b1e6; }
+
+    /* Карточки */
+    #cards { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; margin: 24px 0; }
+    .card {
+      width: 130px;
+      background: #2d2a6e;
+      border: 3px solid #3a3688;
+      border-radius: 16px;
+      padding: 14px 8px;
+      text-align: center;
+      cursor: pointer;
+      transition: 0.15s;
+    }
+    .card:hover { transform: translateY(-4px); }
+    .card .emoji { font-size: 48px; }
+    .card .name  { font-weight: bold; margin-top: 6px; }
+    /* Выбранная карточка получает этот класс через JavaScript */
+    .card.selected { border-color: #ffe14d; background: #3e3a94; }
+
+    /* Панель с информацией */
+    #info {
+      background: #2d2a6e;
+      border-radius: 20px;
+      padding: 24px;
+      border: 3px solid #ffe14d;
+    }
+    #info h2 { margin-top: 0; }
+    .row { display: grid; grid-template-columns: 110px 1fr; align-items: center; gap: 10px; margin: 10px 0; }
+    .bar { height: 14px; background: #14123a; border-radius: 999px; overflow: hidden; }
+    .bar span { display: block; height: 100%; width: 0; background: #3df5c8; transition: width 0.4s; }
+
+    button {
+      display: block; margin: 0 auto;
+      background: #ff4f9a; color: #fff; border: none;
+      padding: 12px 26px; border-radius: 12px; font-size: 17px; font-weight: bold; cursor: pointer;
+    }
+    button:hover { filter: brightness(1.15); }
+  </style>
+</head>
+
+<body>
+<main>
+  <h1>Выбери бойца</h1>
+  <p class="hint">Нажми на карточку или на кнопку «Случайный боец».</p>
+
+  <button id="randomBtn">🎲 Случайный боец</button>
+
+  <div id="cards"></div>
+
+  <div id="info">
+    <h2 id="heroName"></h2>
+    <p id="heroText"></p>
+    <div class="row"><span>Здоровье</span><div class="bar"><span id="barHp"></span></div></div>
+    <div class="row"><span>Урон</span>    <div class="bar"><span id="barDamage"></span></div></div>
+    <div class="row"><span>Скорость</span><div class="bar"><span id="barSpeed"></span></div></div>
+  </div>
+</main>
+
+<script>
+  // Массив объектов: у каждого бойца есть имя, значок, характеристики (0–100) и описание
+  const heroes = [
+    { name: "Искра",   emoji: "⚡", hp: 55,  damage: 80, speed: 90, text: "Быстрая героиня. Стреляет молниями и легко уходит от врагов." },
+    { name: "Глыба",   emoji: "🪨", hp: 100, damage: 50, speed: 30, text: "Медленный, но очень прочный. Защищает команду своим телом." },
+    { name: "Тень",    emoji: "🥷", hp: 50,  damage: 90, speed: 70, text: "Появляется из кустов и быстро бьёт ближнего врага." },
+    { name: "Бим",     emoji: "🤖", hp: 70,  damage: 55, speed: 60, text: "Робот. Держит центр карты и помогает команде." },
+    { name: "Колючка", emoji: "🌵", hp: 45,  damage: 85, speed: 50, text: "Бросает иглы издалека. Лучше всего прячется в кустах." },
+    { name: "Рыжик",   emoji: "🦊", hp: 60,  damage: 65, speed: 95, text: "Очень быстрый. Заходит в тыл и уходит раньше, чем враги ответят." }
+  ];
+
+  const cardsBox = document.getElementById("cards");
+  const cardEls = [];   // сюда сложим все карточки, чтобы потом снимать выделение
+
+  // Выбор бойца по номеру в массиве
+  function selectHero(index) {
+    const hero = heroes[index];
+
+    // Снимаем выделение со всех карточек, ставим на нужную
+    for (const card of cardEls) {
+      card.classList.remove("selected");
+    }
+    cardEls[index].classList.add("selected");
+
+    // Показываем данные бойца
+    document.getElementById("heroName").textContent = hero.emoji + " " + hero.name;
+    document.getElementById("heroText").textContent = hero.text;
+
+    // Ширина шкалы = значение характеристики в процентах
+    document.getElementById("barHp").style.width     = hero.hp + "%";
+    document.getElementById("barDamage").style.width = hero.damage + "%";
+    document.getElementById("barSpeed").style.width  = hero.speed + "%";
+  }
+
+  // Создаём карточку для каждого бойца
+  heroes.forEach(function (hero, index) {
+    const card = document.createElement("div");   // создаём элемент
+    card.className = "card";
+    card.innerHTML = `
+      <div class="emoji">${hero.emoji}</div>
+      <div class="name">${hero.name}</div>
+    `;
+    card.addEventListener("click", function () {
+      selectHero(index);
+    });
+    cardsBox.append(card);                        // добавляем на страницу
+    cardEls.push(card);
+  });
+
+  // Кнопка «Случайный боец»
+  document.getElementById("randomBtn").addEventListener("click", function () {
+    const index = Math.floor(Math.random() * heroes.length);   // случайный номер
+    selectHero(index);
+  });
+
+  // Сразу выбираем первого бойца
+  selectHero(0);
+</script>
+</body>
+</html>

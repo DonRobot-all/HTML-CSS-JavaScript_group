@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<!-- УРОВЕНЬ 4 · СЛОЖНЫЙ
+     Игровой сайт «Арена» только на HTML и CSS, без JavaScript.
+     Что понадобится: переменные CSS, @keyframes (анимации), псевдоэлементы ::before и ::after,
+     рисунок из div-ов, 3D-переворот карточек, вкладки на радиокнопках (:checked),
+     аккордеон (details), счётчики CSS, grid auto-fit, clamp(), backdrop-filter, @media -->
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Арена бойцов</title>
+
+  <style>
+    /* ============ 1. ПЕРЕМЕННЫЕ ============ */
+    :root {
+      --bg:     #0d0b26;
+      --panel:  #1a1745;
+      --line:   #38338a;
+      --text:   #f4f3ff;
+      --muted:  #aaa6e0;
+      --neon:   #3df5c8;   /* бирюзовый */
+      --pink:   #ff4fa0;
+      --gold:   #ffd21f;
+      --radius: 20px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Trebuchet MS", Arial, sans-serif;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* Фон из сетки. ::before рисует слой за всем содержимым */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;                      /* растянуть на весь экран */
+      z-index: -1;
+      background-image:
+        linear-gradient(var(--line) 1px, transparent 1px),
+        linear-gradient(90deg, var(--line) 1px, transparent 1px);
+      background-size: 48px 48px;
+      opacity: 0.25;
+      animation: grid-move 10s linear infinite;
+    }
+    @keyframes grid-move {           /* анимация: сетка медленно едет вниз */
+      to { background-position: 0 48px; }
+    }
+
+    /* ============ 2. ШАПКА ============ */
+    header.top {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      padding: 14px clamp(16px, 5vw, 60px);
+      background: rgba(13, 11, 38, 0.7);
+      backdrop-filter: blur(10px);   /* размытие стекла */
+      border-bottom: 1px solid var(--line);
+    }
+    .brand { font-size: 24px; font-weight: bold; color: var(--neon); letter-spacing: 2px; }
+    header.top nav { display: flex; gap: 8px; flex-wrap: wrap; }
+    header.top a {
+      color: var(--text);
+      text-decoration: none;
+      padding: 8px 16px;
+      border-radius: 999px;
+      border: 1px solid transparent;
+      transition: 0.2s;
+    }
+    header.top a:hover { border-color: var(--neon); color: var(--neon); }
+
+    /* ============ 3. ГЛАВНЫЙ ЭКРАН ============ */
+    .hero {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 70px 20px;
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      align-items: center;
+      gap: 30px;
+    }
+    .hero h1 {
+      font-size: clamp(40px, 7vw, 76px);   /* размер меняется вместе с экраном */
+      line-height: 1.05;
+      /* Текст с градиентом */
+      background: linear-gradient(90deg, var(--neon), var(--pink), var(--gold));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    .hero p { margin: 18px 0 28px; font-size: 20px; color: var(--muted); max-width: 480px; }
+
+    .btn {
+      display: inline-block;
+      padding: 14px 34px;
+      border-radius: 999px;
+      font-weight: bold;
+      text-decoration: none;
+      color: #0d0b26;
+      background: var(--neon);
+      box-shadow: 0 0 0 0 rgba(61, 245, 200, 0.6);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {                 /* пульсирующее свечение кнопки */
+      70%  { box-shadow: 0 0 0 18px rgba(61, 245, 200, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(61, 245, 200, 0); }
+    }
+
+    /* ---------- РОБОТ, нарисованный из div-ов ---------- */
+    .robot-stage { display: flex; justify-content: center; }
+    .robot {
+      position: relative;
+      width: 220px;
+      height: 280px;
+      animation: float 3s ease-in-out infinite;   /* парит вверх-вниз */
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50%      { transform: translateY(-16px); }
+    }
+
+    .antenna {                          /* антенна */
+      position: absolute; left: 50%; top: 0;
+      width: 6px; height: 36px; background: var(--line);
+      transform: translateX(-50%);
+    }
+    .antenna::after {                   /* шарик на конце антенны */
+      content: "";
+      position: absolute; top: -12px; left: -7px;
+      width: 20px; height: 20px; border-radius: 50%;
+      background: var(--pink);
+      box-shadow: 0 0 14px var(--pink);
+      animation: blink-light 1.2s infinite;
+    }
+    @keyframes blink-light { 50% { opacity: 0.3; } }
+
+    .head {
+      position: absolute; left: 50%; top: 34px;
+      width: 170px; height: 130px;
+      transform: translateX(-50%);
+      background: linear-gradient(160deg, var(--neon), #1ba98a);
+      border-radius: 32px;
+      border: 5px solid #0d0b26;
+      display: flex; justify-content: center; align-items: center; gap: 22px;
+    }
+    .eye {
+      width: 42px; height: 42px; border-radius: 50%;
+      background: white;
+      position: relative;
+      animation: blink 4s infinite;      /* моргание */
+    }
+    .eye::after {                        /* зрачок */
+      content: "";
+      position: absolute; left: 14px; top: 14px;
+      width: 16px; height: 16px; border-radius: 50%;
+      background: #0d0b26;
+    }
+    @keyframes blink {
+      0%, 92%, 100% { transform: scaleY(1); }
+      96%           { transform: scaleY(0.1); }
+    }
+    .mouth {
+      position: absolute; bottom: 16px; left: 50%;
+      width: 50px; height: 14px;
+      transform: translateX(-50%);
+      border-bottom: 5px solid #0d0b26;
+      border-radius: 0 0 40px 40px;      /* улыбка */
+    }
+    .torso {
+      position: absolute; left: 50%; top: 170px;
+      width: 120px; height: 90px;
+      transform: translateX(-50%);
+      background: linear-gradient(160deg, var(--pink), #a3205f);
+      border-radius: 24px;
+      border: 5px solid #0d0b26;
+    }
+    .torso::before {                     /* кнопка на груди */
+      content: "";
+      position: absolute; left: 50%; top: 24px;
+      width: 30px; height: 30px; border-radius: 50%;
+      background: var(--gold);
+      transform: translateX(-50%);
+    }
+    .arm {
+      position: absolute; top: 180px;
+      width: 26px; height: 70px; border-radius: 14px;
+      background: var(--neon); border: 4px solid #0d0b26;
+    }
+    .arm.left  { left: 14px;  transform: rotate(14deg); }
+    .arm.right { right: 14px; transform: rotate(-14deg); }
+
+    /* ============ 4. ОБЩИЕ ПРАВИЛА ДЛЯ РАЗДЕЛОВ ============ */
+    section { max-width: 1100px; margin: 0 auto; padding: 60px 20px; }
+    section h2 { font-size: clamp(28px, 4vw, 40px); margin-bottom: 8px; }
+    section h2 span { color: var(--neon); }
+    .lead { color: var(--muted); margin-bottom: 30px; max-width: 640px; }
+
+    /* ============ 5. ШКАЛЫ ХАРАКТЕРИСТИК ============ */
+    .stats { display: grid; gap: 18px; max-width: 640px; }
+    .stat-name { display: flex; justify-content: space-between; margin-bottom: 6px; font-weight: bold; }
+    .bar { height: 16px; background: var(--panel); border-radius: 999px; overflow: hidden; border: 1px solid var(--line); }
+    .bar span {
+      display: block; height: 100%;
+      width: var(--v);                  /* значение берём из переменной в HTML */
+      background: linear-gradient(90deg, var(--neon), var(--gold));
+      border-radius: 999px;
+      animation: fill 1.6s ease-out;
+    }
+    @keyframes fill { from { width: 0; } }
+
+    /* ============ 6. КАРТОЧКИ, КОТОРЫЕ ПЕРЕВОРАЧИВАЮТСЯ ============ */
+    .flip-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));  /* сами подбирают число колонок */
+      gap: 24px;
+    }
+    .flip { perspective: 900px; height: 270px; outline: none; }
+    .flip-inner {
+      position: relative; width: 100%; height: 100%;
+      transition: transform 0.7s;
+      transform-style: preserve-3d;     /* включает 3D для вложенных элементов */
+    }
+    .flip:hover .flip-inner,
+    .flip:focus .flip-inner { transform: rotateY(180deg); }   /* поворот при наведении или касании */
+
+    .face {
+      position: absolute; inset: 0;
+      backface-visibility: hidden;      /* не показываем обратную сторону */
+      border-radius: var(--radius);
+      padding: 24px;
+      display: flex; flex-direction: column; justify-content: center; align-items: center;
+      text-align: center; gap: 8px;
+    }
+    .front { background: var(--panel); border: 2px solid var(--line); }
+    .front .big { font-size: 70px; }
+    .front h3 { font-size: 26px; }
+    .front small { color: var(--muted); }
+    .back  { background: linear-gradient(160deg, var(--pink), #6a1fd0); transform: rotateY(180deg); }
+
+    /* ============ 7. ВКЛАДКИ БЕЗ JAVASCRIPT ============ */
+    /* Радиокнопки спрятаны, а метки label работают как кнопки вкладок */
+    .tabs input { position: absolute; opacity: 0; pointer-events: none; }
+    .tab-labels { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+    .tab-labels label {
+      padding: 10px 22px;
+      border-radius: 999px;
+      border: 2px solid var(--line);
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .tab-labels label:hover { border-color: var(--neon); }
+
+    /* Выбранная вкладка: ~ означает «любой следующий соседний элемент» */
+    #t1:checked ~ .tab-labels label[for="t1"],
+    #t2:checked ~ .tab-labels label[for="t2"],
+    #t3:checked ~ .tab-labels label[for="t3"] {
+      background: var(--neon); color: #0d0b26; border-color: var(--neon); font-weight: bold;
+    }
+
+    .panel { display: none; background: var(--panel); border-radius: var(--radius); padding: 28px; border: 1px solid var(--line); }
+    #t1:checked ~ .panels .p1,
+    #t2:checked ~ .panels .p2,
+    #t3:checked ~ .panels .p3 { display: block; animation: appear 0.4s; }
+    @keyframes appear { from { opacity: 0; transform: translateY(10px); } }
+
+    .panel ul { padding-left: 22px; display: grid; gap: 8px; }
+
+    /* Счётчик CSS: нумерует советы автоматически */
+    .tips { counter-reset: tip; list-style: none; padding: 0; display: grid; gap: 14px; }
+    .tips li { counter-increment: tip; display: flex; gap: 14px; align-items: flex-start; }
+    .tips li::before {
+      content: counter(tip);
+      flex: none;
+      width: 34px; height: 34px; border-radius: 50%;
+      background: var(--gold); color: #0d0b26;
+      display: flex; justify-content: center; align-items: center;
+      font-weight: bold;
+    }
+
+    /* ============ 8. АККОРДЕОН (details и summary) ============ */
+    details {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      margin-bottom: 12px;
+      padding: 16px 20px;
+    }
+    summary { cursor: pointer; font-weight: bold; list-style: none; display: flex; justify-content: space-between; }
+    summary::-webkit-details-marker { display: none; }   /* убираем стандартный треугольник */
+    summary::after { content: "+"; color: var(--neon); font-size: 24px; line-height: 1; }
+    details[open] summary::after { content: "−"; }
+    details[open] { border-color: var(--neon); }
+    details p { margin-top: 12px; color: var(--muted); }
+
+    footer { text-align: center; color: var(--muted); padding: 40px 20px; border-top: 1px solid var(--line); }
+
+    /* ============ 9. АДАПТИВНОСТЬ ============ */
+    @media (max-width: 800px) {
+      .hero { grid-template-columns: 1fr; text-align: center; }
+      .hero p { margin-left: auto; margin-right: auto; }
+      .robot-stage { order: -1; }       /* робот над текстом */
+    }
+
+    /* Для тех, кто отключил анимации в настройках системы */
+    @media (prefers-reduced-motion: reduce) {
+      * { animation: none !important; transition: none !important; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ШАПКА -->
+  <header class="top">
+    <div class="brand">АРЕНА</div>
+    <nav>
+      <a href="#fighters">Бойцы</a>
+      <a href="#guide">Гид</a>
+      <a href="#faq">Вопросы</a>
+    </nav>
+  </header>
+
+  <!-- ГЛАВНЫЙ ЭКРАН -->
+  <div class="hero">
+    <div>
+      <h1>Арена бойцов</h1>
+      <p>Фан-сайт про командные бои. Весь сайт сделан только на HTML и CSS: анимации, вкладки и переворот карточек работают без JavaScript.</p>
+      <a class="btn" href="#fighters">Выбрать бойца</a>
+    </div>
+
+    <!-- Робот собран из пустых блоков, форму им задаёт CSS -->
+    <div class="robot-stage">
+      <div class="robot" role="img" aria-label="Рисунок робота-бойца Бима">
+        <div class="antenna"></div>
+        <div class="head">
+          <div class="eye"></div>
+          <div class="eye"></div>
+          <div class="mouth"></div>
+        </div>
+        <div class="arm left"></div>
+        <div class="arm right"></div>
+        <div class="torso"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- БОЙЦЫ: карточки переворачиваются -->
+  <section id="fighters">
+    <h2>Выбери <span>бойца</span></h2>
+    <p class="lead">Наведи мышку на карточку или коснись её на телефоне, чтобы увидеть описание.</p>
+
+    <div class="flip-grid">
+
+      <div class="flip" tabindex="0">
+        <div class="flip-inner">
+          <div class="face front"><div class="big">🤖</div><h3>Бим</h3><small>Робот · средний бой</small></div>
+          <div class="face back"><h3>Бим</h3><p>Стреляет зарядами энергии. Хорошо держит центр карты и помогает команде.</p></div>
+        </div>
+      </div>
+
+      <div class="flip" tabindex="0">
+        <div class="flip-inner">
+          <div class="face front"><div class="big">🌵</div><h3>Колючка</h3><small>Растение · дальний бой</small></div>
+          <div class="face back"><h3>Колючка</h3><p>Бросает иглы издалека. Лучше всего прячется в кустах.</p></div>
+        </div>
+      </div>
+
+      <div class="flip" tabindex="0">
+        <div class="flip-inner">
+          <div class="face front"><div class="big">🦊</div><h3>Рыжик</h3><small>Зверь · быстрый бой</small></div>
+          <div class="face back"><h3>Рыжик</h3><p>Очень быстрый. Забегает в тыл врагов и уходит раньше, чем те успеют ответить.</p></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ХАРАКТЕРИСТИКИ: шкалы -->
+  <section>
+    <h2>Характеристики <span>Бима</span></h2>
+    <p class="lead">Ширина шкалы задаётся переменной --v прямо в HTML.</p>
+
+    <div class="stats">
+      <div><div class="stat-name"><span>Здоровье</span><span>70%</span></div><div class="bar"><span style="--v: 70%"></span></div></div>
+      <div><div class="stat-name"><span>Урон</span><span>55%</span></div><div class="bar"><span style="--v: 55%"></span></div></div>
+      <div><div class="stat-name"><span>Скорость</span><span>85%</span></div><div class="bar"><span style="--v: 85%"></span></div></div>
+      <div><div class="stat-name"><span>Дальность</span><span>40%</span></div><div class="bar"><span style="--v: 40%"></span></div></div>
+    </div>
+  </section>
+
+  <!-- ГИД: вкладки -->
+  <section id="guide">
+    <h2>Гид <span>новичка</span></h2>
+    <p class="lead">Вкладки переключаются через скрытые радиокнопки и селектор :checked.</p>
+
+    <div class="tabs">
+      <!-- Три радиокнопки: у них одно имя name="tab", поэтому выбрана может быть только одна -->
+      <input type="radio" name="tab" id="t1" checked>
+      <input type="radio" name="tab" id="t2">
+      <input type="radio" name="tab" id="t3">
+
+      <div class="tab-labels">
+        <label for="t1">Режимы</label>
+        <label for="t2">Советы</label>
+        <label for="t3">Команда</label>
+      </div>
+
+      <div class="panels">
+        <div class="panel p1">
+          <ul>
+            <li><b>Захват кристаллов</b>: удержи кристаллы до конца таймера.</li>
+            <li><b>Столкновение</b>: бой на выживание, остаётся один.</li>
+            <li><b>Броулбол</b>: забей мяч в ворота соперника.</li>
+          </ul>
+        </div>
+
+        <div class="panel p2">
+          <ol class="tips">
+            <li>Не стой на открытом месте: прячься за стенами.</li>
+            <li>Следи за миникартой и за здоровьем союзников.</li>
+            <li>Не гонись за каждым врагом: цель режима важнее.</li>
+            <li>Играй разными бойцами и найди своего.</li>
+          </ol>
+        </div>
+
+        <div class="panel p3">
+          <ul>
+            <li>Договоритесь, кто идёт вперёд, а кто прикрывает.</li>
+            <li>Используйте чат-фразы вместо споров.</li>
+            <li>Победа в команде приятнее победы в одиночку.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ВОПРОСЫ: аккордеон -->
+  <section id="faq">
+    <h2>Частые <span>вопросы</span></h2>
+    <p class="lead">Теги details и summary раскрываются без единой строчки скрипта.</p>
+
+    <details open>
+      <summary>Можно ли сделать такой сайт без JavaScript?</summary>
+      <p>Да. Вкладки, аккордеон, анимации и переворот карточек делаются на чистом CSS.</p>
+    </details>
+    <details>
+      <summary>Зачем нужны переменные CSS?</summary>
+      <p>Цвет записывается один раз в :root. Хочешь сменить тему сайта, меняешь одну строку.</p>
+    </details>
+    <details>
+      <summary>Как сайт подстраивается под телефон?</summary>
+      <p>Через meta viewport, сетку grid с auto-fit, функцию clamp() и правило @media.</p>
+    </details>
+  </section>
+
+  <footer>Фан-сайт для учёбы. Герои придуманы, сайт не связан с Supercell.</footer>
+</body>
+</html>

@@ -1,0 +1,48 @@
+{% extends "game/base.html" %}
+{% load static %}
+
+{% block title %}Игра. Арена бойцов{% endblock %}
+
+{% block content %}
+  <h1>Охота за кристаллами</h1>
+
+  {# Python передаёт в JavaScript адрес API и защитный токен через data-атрибуты #}
+  <div class="play-layout" id="game-root"
+       data-api="{% url 'api_scores' %}" data-csrf="{{ csrf_token }}">
+
+    <div class="game-col">
+      <div id="hud">
+        <div><b id="hudScore">0</b><small>кристаллов</small></div>
+        <div><b id="hudLives">3</b><small>жизней</small></div>
+        <div><b id="hudTime">45</b><small>секунд</small></div>
+      </div>
+
+      <div class="stage">
+        <canvas id="game" width="800" height="500"></canvas>
+
+        <div id="overlay">
+          <h2 id="ovTitle">Готов?</h2>
+          <p id="ovText">Собирай кристаллы и уворачивайся от красных врагов. 3 жизни, 45 секунд. Стрелки или WASD, на телефоне води пальцем.</p>
+
+          <form id="scoreForm" hidden>
+            <input id="playerName" maxlength="20" placeholder="Твоё имя" required>
+            <button type="submit" class="btn small">Отправить результат</button>
+          </form>
+          <p id="sendMsg" class="muted"></p>
+
+          <button id="startBtn" class="btn">Играть</button>
+        </div>
+      </div>
+    </div>
+
+    <aside>
+      <h2>Рекорды</h2>
+      {% include "game/_scores.html" %}
+    </aside>
+  </div>
+{% endblock %}
+
+{% block scripts %}
+  <script src="{% static 'game/js/scores.js' %}"></script>
+  <script src="{% static 'game/js/game.js' %}"></script>
+{% endblock %}

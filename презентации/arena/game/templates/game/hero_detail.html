@@ -1,0 +1,21 @@
+{% extends "game/base.html" %}
+
+{% block title %}{{ hero.name }}. Арена бойцов{% endblock %}
+
+{% block content %}
+  <p><a href="{% url 'index' %}">← Все бойцы</a></p>
+
+  <section class="detail">
+    <div class="big-emoji">{{ hero.emoji }}</div>
+    <div>
+      <h1>{{ hero.name }}</h1>
+      <p class="role">{{ hero.role }}</p>
+      <p>{{ hero.description }}</p>
+
+      {# Ширина шкалы берётся прямо из базы данных #}
+      <div class="stat"><span>Здоровье</span><div class="bar"><i style="width: {{ hero.hp }}%"></i></div><b>{{ hero.hp }}</b></div>
+      <div class="stat"><span>Урон</span><div class="bar"><i style="width: {{ hero.damage }}%"></i></div><b>{{ hero.damage }}</b></div>
+      <div class="stat"><span>Скорость</span><div class="bar"><i style="width: {{ hero.speed }}%"></i></div><b>{{ hero.speed }}</b></div>
+    </div>
+  </section>
+{% endblock %}

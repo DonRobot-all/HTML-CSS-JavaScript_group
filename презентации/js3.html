@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<!-- УРОВЕНЬ 3 · СРЕДНИЙ · «Викторина по режимам»
+     Что нужно знать: массив объектов, функции, события, создание кнопок в цикле,
+     учёт состояния (номер вопроса, очки), classList, localStorage, try/catch -->
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Викторина по режимам</title>
+
+  <style>
+    :root { --bg:#14123a; --panel:#24215c; --line:#3a3688; --gold:#ffd21f; --ok:#2fd18b; --bad:#ff5c7a; --text:#f3f2ff; --muted:#b4b1e6; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--text); font-family: "Trebuchet MS", Arial, sans-serif; padding: 24px 16px 40px; }
+    main { max-width: 640px; margin: 0 auto; }
+    h1 { text-align: center; color: var(--gold); margin-bottom: 4px; }
+    .sub { text-align: center; color: var(--muted); margin-top: 0; }
+
+    .panel { background: var(--panel); border: 2px solid var(--line); border-radius: 20px; padding: 24px; margin-top: 20px; }
+    .hidden { display: none; }
+
+    /* Полоса прогресса */
+    .progress { height: 12px; background: var(--bg); border-radius: 999px; overflow: hidden; }
+    .progress div { height: 100%; width: 0; background: var(--gold); transition: width 0.4s; }
+    .meta { display: flex; justify-content: space-between; color: var(--muted); margin: 10px 0 18px; }
+
+    #question { font-size: 22px; margin: 0 0 18px; }
+
+    /* Кнопки-ответы */
+    #answers { display: grid; gap: 10px; }
+    .answer {
+      background: var(--bg); color: var(--text);
+      border: 3px solid var(--line); border-radius: 12px;
+      padding: 14px; font-size: 18px; text-align: left; cursor: pointer;
+    }
+    .answer:hover:not(:disabled) { border-color: var(--gold); }
+    .answer.correct { border-color: var(--ok);  background: #124d3a; }
+    .answer.wrong   { border-color: var(--bad); background: #5a1a2c; }
+    .answer:disabled { cursor: default; }
+
+    .main-btn {
+      margin-top: 18px; background: var(--gold); color: #14123a; border: none;
+      padding: 12px 28px; font-size: 18px; font-weight: bold; border-radius: 12px; cursor: pointer;
+    }
+    .main-btn:hover { filter: brightness(1.1); }
+
+    #result { text-align: center; }
+    #score { font-size: 64px; font-weight: bold; color: var(--gold); margin: 0; }
+  </style>
+</head>
+
+<body>
+<main>
+  <h1>Викторина по режимам</h1>
+  <p class="sub">Проверь, как хорошо ты знаешь командные бои</p>
+
+  <!-- ЭКРАН ВОПРОСА -->
+  <section class="panel" id="quiz">
+    <div class="progress"><div id="bar"></div></div>
+    <div class="meta"><span id="counter"></span><span id="scoreLive"></span></div>
+    <h2 id="question"></h2>
+    <div id="answers"></div>
+    <button class="main-btn hidden" id="nextBtn">Дальше</button>
+  </section>
+
+  <!-- ЭКРАН РЕЗУЛЬТАТА -->
+  <section class="panel hidden" id="result">
+    <p>Твой результат</p>
+    <p id="score"></p>
+    <p id="message"></p>
+    <p id="best" style="color:#b4b1e6"></p>
+    <button class="main-btn" id="restartBtn">Играть ещё раз</button>
+  </section>
+</main>
+
+<script>
+  // ВОПРОСЫ: у каждого есть текст, варианты ответа и номер правильного (с нуля).
+  // Замени вопросы на свои, и викторина станет другой.
+  const questions = [
+    { q: "Сколько игроков в одной команде в режиме «Захват кристаллов»?", answers: ["2", "3", "5"], correct: 1 },
+    { q: "Сколько кристаллов нужно удерживать для победы в «Захвате кристаллов»?", answers: ["5", "10", "20"], correct: 1 },
+    { q: "В каком режиме нужно забивать мяч в ворота?", answers: ["Броулбол", "Столкновение", "Награда"], correct: 0 },
+    { q: "Что нужно взломать в режиме «Ограбление»?", answers: ["Дверь", "Сейф", "Компьютер"], correct: 1 },
+    { q: "Что собирают в режиме «Награда»?", answers: ["Монеты", "Ключи", "Звёзды"], correct: 2 },
+    { q: "Как называются игровые герои в Brawl Stars?", answers: ["Бравлеры", "Рейнджеры", "Танкисты"], correct: 0 },
+    { q: "Сколько голов нужно забить, чтобы выиграть в Броулболе?", answers: ["2", "7", "10"], correct: 0 },
+    { q: "Сколько игроков в соло-режиме «Столкновение»?", answers: ["6", "8", "10"], correct: 2 }
+  ];
+
+  // ПЕРЕМЕННЫЕ СОСТОЯНИЯ
+  let current = 0;      // номер текущего вопроса
+  let score = 0;        // сколько правильных ответов
+  let locked = false;   // true, когда ответ уже выбран
+
+  // ЭЛЕМЕНТЫ СТРАНИЦЫ
+  const quizEl     = document.getElementById("quiz");
+  const resultEl   = document.getElementById("result");
+  const questionEl = document.getElementById("question");
+  const answersEl  = document.getElementById("answers");
+  const nextBtn    = document.getElementById("nextBtn");
+  const barEl      = document.getElementById("bar");
+  const counterEl  = document.getElementById("counter");
+  const scoreLive  = document.getElementById("scoreLive");
+
+  // Показать вопрос с номером current
+  function showQuestion() {
+    const item = questions[current];
+    locked = false;
+    nextBtn.classList.add("hidden");
+
+    questionEl.textContent = item.q;
+    counterEl.textContent  = "Вопрос " + (current + 1) + " из " + questions.length;
+    scoreLive.textContent  = "Очки: " + score;
+    barEl.style.width      = (current / questions.length * 100) + "%";
+
+    // Очищаем старые кнопки и создаём новые
+    answersEl.innerHTML = "";
+    item.answers.forEach(function (text, index) {
+      const btn = document.createElement("button");
+      btn.className = "answer";
+      btn.textContent = text;
+      btn.addEventListener("click", function () {
+        chooseAnswer(index);
+      });
+      answersEl.append(btn);
+    });
+  }
+
+  // Игрок выбрал ответ с номером index
+  function chooseAnswer(index) {
+    if (locked) return;       // второй раз отвечать нельзя
+    locked = true;
+
+    const item = questions[current];
+    const buttons = answersEl.querySelectorAll(".answer");
+
+    // Подсвечиваем правильный ответ зелёным
+    buttons[item.correct].classList.add("correct");
+
+    if (index === item.correct) {
+      score++;
+    } else {
+      buttons[index].classList.add("wrong");   // неверный ответ красным
+    }
+    buttons.forEach(function (b) { b.disabled = true; });
+
+    scoreLive.textContent = "Очки: " + score;
+    nextBtn.textContent = (current === questions.length - 1) ? "Показать результат" : "Дальше";
+    nextBtn.classList.remove("hidden");
+  }
+
+  // Лучший результат хранится в браузере (localStorage)
+  function loadBest() {
+    try { return Number(localStorage.getItem("quizBest")) || 0; }
+    catch (e) { return 0; }       // если хранилище недоступно, просто возвращаем 0
+  }
+  function saveBest(value) {
+    try { localStorage.setItem("quizBest", value); }
+    catch (e) { /* ничего не делаем */ }
+  }
+
+  // Показать результат
+  function showResult() {
+    quizEl.classList.add("hidden");
+    resultEl.classList.remove("hidden");
+
+    document.getElementById("score").textContent = score + " из " + questions.length;
+
+    let msg;
+    if (score === questions.length) msg = "Идеально! Ты настоящий эксперт.";
+    else if (score >= questions.length / 2) msg = "Хороший результат. Попробуй улучшить его.";
+    else msg = "Есть что повторить. Попробуй ещё раз.";
+    document.getElementById("message").textContent = msg;
+
+    const best = loadBest();
+    if (score > best) {
+      saveBest(score);
+      document.getElementById("best").textContent = "Новый рекорд!";
+    } else {
+      document.getElementById("best").textContent = "Лучший результат: " + best;
+    }
+  }
+
+  // Кнопка «Дальше»
+  nextBtn.addEventListener("click", function () {
+    current++;
+    if (current < questions.length) {
+      showQuestion();
+    } else {
+      showResult();
+    }
+  });
+
+  // Кнопка «Играть ещё раз»
+  document.getElementById("restartBtn").addEventListener("click", function () {
+    current = 0;
+    score = 0;
+    resultEl.classList.add("hidden");
+    quizEl.classList.remove("hidden");
+    showQuestion();
+  });
+
+  // Старт
+  showQuestion();
+</script>
+</body>
+</html>

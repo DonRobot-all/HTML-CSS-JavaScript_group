@@ -1,0 +1,8 @@
+{# Кусочек шаблона: таблица рекордов. Его подключают через {% include %} #}
+<ol class="scores" id="scores" data-api="{% url 'api_scores' %}">
+  {% for s in top %}
+    <li><span class="who">{{ s.name }}</span><span class="pts">{{ s.crystals }}</span></li>
+  {% empty %}
+    <li class="empty">Пока никого. Будь первым!</li>
+  {% endfor %}
+</ol>

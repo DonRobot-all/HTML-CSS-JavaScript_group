@@ -1,0 +1,28 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Арена бойцов{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'game/css/style.css' %}">
+</head>
+<body>
+  <header class="top">
+    <a class="brand" href="{% url 'index' %}">АРЕНА</a>
+    <nav>
+      <a href="{% url 'index' %}">Бойцы</a>
+      <a href="{% url 'play' %}">Игра</a>
+      <a href="{% url 'leaderboard' %}">Рекорды</a>
+    </nav>
+  </header>
+
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer>Учебный проект на Python, Django, HTML, CSS и JavaScript. Герои придуманы, сайт не связан с Supercell.</footer>
+
+  {% block scripts %}{% endblock %}
+</body>
+</html>

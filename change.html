@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Рисовашка</title>
+    <style>
+        body { 
+            text-align: center; 
+        }
+        canvas { 
+            border: 1px solid #ccc; 
+            background: #fff; 
+        }
+        .page-background {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+        }
+        .color_bg {
+            position: absolute;
+            inset: 0;
+            background-size: cover;
+            opacity: 0;
+            transition: opacity 1.5s ease-in-out;
+        }
+        .color_bg.active {
+            opacity: 1;
+        }
+        .site-content {
+            z-index: 1;
+            position: relative;
+        }
+    </style>
+</head>
+<body>
+    <div class="page-background">
+        <div class="color_bg active" style="background-image: url('images/1.jpeg');"> </div>
+        <div class="color_bg" style="background-image: url('images/2.jpg');"> </div>
+        <div class="color_bg" style="background-image: url('images/3.jpg');"> </div>
+
+    </div>
+
+    <div class="site-content">
+        <input type="color" id="c" value="#000000">
+        <input type="range" id="s" min="1" max="30" value="4">
+        <button onclick="e = !e">Ластик</button>
+        <button onclick="x.clearRect(0, 0, 800, 500)">Стереть</button>
+        
+        <canvas id="cv" width="800" height="500"></canvas>
+    </div>
+    <script>
+          let cv = document.getElementById('cv'), 
+            x = cv.getContext('2d');
+            
+        let d = 0, 
+            lx = 0, 
+            ly = 0, 
+            e = 0; 
+        cv.onmousedown = (m) => { 
+            d = 1; 
+            let r = cv.getBoundingClientRect(); 
+            lx = m.clientX - r.left; 
+            ly = m.clientY - r.top; 
+        };
+        cv.onmousemove = (m) => {
+            if (!d) return;
+            let r = cv.getBoundingClientRect();
+            let cx = m.clientX - r.left, 
+                cy = m.clientY - r.top;
+            x.strokeStyle = e ? '#fff' : document.getElementById('c').value;
+            x.lineWidth = document.getElementById('s').value; 
+            x.beginPath();
+            x.moveTo(lx, ly);
+            x.lineTo(cx, cy);
+            x.stroke();
+            lx = cx; 
+            ly = cy; 
+        }
+        cv.onmouseup = cv.onmouseleave = () => { 
+            d = 0; 
+        };
+    </script>
+    <script>
+        let slides = document.querySelectorAll('.color_bg');
+        let currentSlide = 0;
+        setInterval(() => {
+            slides[currentSlide].classList.remove('active')
+            currentSlide = (currentSlide + 1) % slides.length;
+            slides[currentSlide].classList.add('active')
+        }, 5000)
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<!-- УРОВЕНЬ 4 · СЛОЖНЫЙ · Мини-игра «Охота за кристаллами»
+     Что нужно знать: canvas, игровой цикл requestAnimationFrame, классы,
+     события клавиатуры и указателя, столкновения, состояния игры, localStorage.
+     Управление: стрелки или WASD. На телефоне: води пальцем по полю. -->
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Охота за кристаллами</title>
+
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; background: #0d0b26; color: #fff;
+      font-family: "Trebuchet MS", Arial, sans-serif;
+      padding: 16px; display: flex; flex-direction: column; align-items: center;
+    }
+    h1 { color: #ffd21f; margin: 8px 0 12px; font-size: clamp(24px, 5vw, 36px); }
+
+    /* Верхняя панель с числами */
+    #hud { display: flex; gap: 12px; width: 100%; max-width: 800px; margin-bottom: 10px; }
+    #hud div { flex: 1; background: #1a1745; border: 2px solid #38338a; border-radius: 12px; padding: 8px; text-align: center; }
+    #hud b { display: block; font-size: 22px; color: #3df5c8; }
+    #hud small { color: #aaa6e0; }
+
+    /* Игровое поле. Размер в CSS меняется, а внутри канваса координаты всегда 800 на 500 */
+    .stage { position: relative; width: 100%; max-width: 800px; }
+    canvas {
+      width: 100%; height: auto; display: block;
+      background: #15123f; border: 3px solid #3df5c8; border-radius: 16px;
+      touch-action: none;            /* чтобы палец двигал героя, а не прокручивал страницу */
+    }
+
+    /* Окно поверх поля: старт и конец игры */
+    #overlay {
+      position: absolute; inset: 0; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 10px; text-align: center;
+      background: rgba(13, 11, 38, 0.85); border-radius: 16px; padding: 20px;
+    }
+    #overlay.hidden { display: none; }
+    #overlay h2 { margin: 0; font-size: clamp(24px, 5vw, 38px); color: #ffd21f; }
+    #overlay p  { margin: 0; color: #cfcdf5; max-width: 460px; }
+    #startBtn {
+      margin-top: 8px; background: #3df5c8; color: #0d0b26; border: none;
+      padding: 14px 36px; font-size: 20px; font-weight: bold; border-radius: 999px; cursor: pointer;
+    }
+    #startBtn:hover { filter: brightness(1.1); }
+  </style>
+</head>
+
+<body>
+  <h1>Охота за кристаллами</h1>
+
+  <div id="hud">
+    <div><b id="hudScore">0</b><small>кристаллов</small></div>
+    <div><b id="hudLives">3</b><small>жизней</small></div>
+    <div><b id="hudTime">45</b><small>секунд</small></div>
+    <div><b id="hudBest">0</b><small>рекорд</small></div>
+  </div>
+
+  <div class="stage">
+    <canvas id="game" width="800" height="500"></canvas>
+
+    <div id="overlay">
+      <h2 id="ovTitle">Охота за кристаллами</h2>
+      <p id="ovText">Собирай кристаллы и уворачивайся от красных шипастых врагов. У тебя 3 жизни и 45 секунд.</p>
+      <p>Управление: стрелки или WASD. На телефоне води пальцем по полю.</p>
+      <button id="startBtn">Играть</button>
+    </div>
+  </div>
+
+<script>
+  // ============ 1. НАСТРОЙКИ ============
+  const W = 800, H = 500;          // размеры игрового поля
+  const GAME_TIME = 45;            // длительность игры, секунд
+  const START_LIVES = 3;
+
+  const canvas = document.getElementById("game");
+  const ctx = canvas.getContext("2d");   // «кисть» для рисования
+
+  // Элементы страницы
+  const overlay  = document.getElementById("overlay");
+  const ovTitle  = document.getElementById("ovTitle");
+  const ovText   = document.getElementById("ovText");
+  const hudScore = document.getElementById("hudScore");
+  const hudLives = document.getElementById("hudLives");
+  const hudTime  = document.getElementById("hudTime");
+  const hudBest  = document.getElementById("hudBest");
+
+  // ============ 2. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ============
+  function rand(min, max) { return Math.random() * (max - min) + min; }
+  function distance(a, b) { return Math.hypot(a.x - b.x, a.y - b.y); }   // расстояние между точками
+
+  function loadBest() {
+    try { return Number(localStorage.getItem("crystalBest")) || 0; }
+    catch (e) { return 0; }
+  }
+  function saveBest(v) {
+    try { localStorage.setItem("crystalBest", v); }
+    catch (e) {}
+  }
+
+  // ============ 3. КЛАССЫ ИГРОВЫХ ОБЪЕКТОВ ============
+
+  // Игрок
+  class Player {
+    constructor() {
+      this.r = 16;                 // радиус
+      this.speed = 260;            // пикселей в секунду
+      this.reset();
+    }
+    reset() {
+      this.x = W / 2;
+      this.y = H / 2;
+      this.dirX = 1;               // куда смотрит
+      this.invincible = 0;         // сколько секунд герой неуязвим
+    }
+    update(dt) {
+      let dx = 0, dy = 0;
+
+      // Управление с клавиатуры
+      if (keys.left)  dx -= 1;
+      if (keys.right) dx += 1;
+      if (keys.up)    dy -= 1;
+      if (keys.down)  dy += 1;
+
+      if (dx !== 0 || dy !== 0) {
+        pointerTarget = null;      // клавиатура главнее пальца
+      } else if (pointerTarget) {
+        // Движение к точке, куда указал палец или мышка
+        const vx = pointerTarget.x - this.x;
+        const vy = pointerTarget.y - this.y;
+        const len = Math.hypot(vx, vy);
+        if (len > 6) { dx = vx / len; dy = vy / len; }
+      }
+
+      // Чтобы по диагонали не бегать быстрее
+      const len = Math.hypot(dx, dy);
+      if (len > 0) {
+        dx /= len; dy /= len;
+        this.x += dx * this.speed * dt;
+        this.y += dy * this.speed * dt;
+        if (dx !== 0) this.dirX = dx > 0 ? 1 : -1;
+      }
+
+      // Не выходим за границы поля
+      this.x = Math.max(this.r, Math.min(W - this.r, this.x));
+      this.y = Math.max(this.r, Math.min(H - this.r, this.y));
+
+      if (this.invincible > 0) this.invincible -= dt;
+    }
+    draw() {
+      // Мигаем, пока герой неуязвим
+      if (this.invincible > 0 && Math.floor(this.invincible * 10) % 2 === 0) return;
+
+      ctx.fillStyle = "#3df5c8";
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Глаза
+      ctx.fillStyle = "#fff";
+      ctx.beginPath(); ctx.arc(this.x - 5, this.y - 4, 5, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(this.x + 5, this.y - 4, 5, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "#0d0b26";
+      ctx.beginPath(); ctx.arc(this.x - 5 + this.dirX * 2, this.y - 4, 2.5, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(this.x + 5 + this.dirX * 2, this.y - 4, 2.5, 0, Math.PI * 2); ctx.fill();
+    }
+  }
+
+  // Кристалл
+  class Crystal {
+    constructor() {
+      this.r = 11;
+      this.x = rand(40, W - 40);
+      this.y = rand(40, H - 40);
+      this.phase = rand(0, 6);     // чтобы кристаллы «дышали» не одновременно
+    }
+    draw(time) {
+      const pulse = 1 + Math.sin(time * 4 + this.phase) * 0.15;
+      const s = this.r * pulse;
+      ctx.fillStyle = "#ff4fa0";
+      ctx.beginPath();             // ромб из четырёх линий
+      ctx.moveTo(this.x, this.y - s * 1.3);
+      ctx.lineTo(this.x + s, this.y);
+      ctx.lineTo(this.x, this.y + s * 1.3);
+      ctx.lineTo(this.x - s, this.y);
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = "#ffd6ea";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+  }
+
+  // Враг: летает по полю и отскакивает от стен
+  class Enemy {
+    constructor() {
+      this.r = 18;
+      // Появляемся у края поля, подальше от игрока
+      do {
+        this.x = rand(this.r, W - this.r);
+        this.y = rand(this.r, H - this.r);
+      } while (distance(this, player) < 200);
+      const angle = rand(0, Math.PI * 2);
+      const speed = rand(90, 150);
+      this.vx = Math.cos(angle) * speed;
+      this.vy = Math.sin(angle) * speed;
+    }
+    update(dt) {
+      this.x += this.vx * dt;
+      this.y += this.vy * dt;
+      if (this.x < this.r || this.x > W - this.r) this.vx *= -1;   // отскок
+      if (this.y < this.r || this.y > H - this.r) this.vy *= -1;
+    }
+    draw() {
+      // Шипы
+      ctx.fillStyle = "#ff5c5c";
+      for (let i = 0; i < 8; i++) {
+        const a = i * Math.PI / 4;
+        ctx.beginPath();
+        ctx.arc(this.x + Math.cos(a) * this.r, this.y + Math.sin(a) * this.r, 6, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      // Тело
+      ctx.beginPath(); ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2); ctx.fill();
+      // Сердитые глаза
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(this.x - 9, this.y - 5, 7, 7);
+      ctx.fillRect(this.x + 2, this.y - 5, 7, 7);
+      ctx.fillStyle = "#0d0b26";
+      ctx.fillRect(this.x - 7, this.y - 3, 3, 3);
+      ctx.fillRect(this.x + 4, this.y - 3, 3, 3);
+    }
+  }
+
+  // ============ 4. СОСТОЯНИЕ ИГРЫ ============
+  let state = "start";         // "start", "play" или "over"
+  let score = 0, lives = START_LIVES, timeLeft = GAME_TIME;
+  let best = loadBest();
+  let lastFrame = 0, elapsed = 0;
+
+  const player = new Player();
+  let crystals = [];
+  let enemies = [];
+
+  const keys = { left: false, right: false, up: false, down: false };
+  let pointerTarget = null;
+
+  // ============ 5. УПРАВЛЕНИЕ ============
+  // Таблица: какая клавиша какое направление включает
+  const keyMap = {
+    ArrowLeft: "left",  KeyA: "left",
+    ArrowRight: "right", KeyD: "right",
+    ArrowUp: "up",      KeyW: "up",
+    ArrowDown: "down",  KeyS: "down"
+  };
+
+  window.addEventListener("keydown", function (e) {
+    if (keyMap[e.code]) { keys[keyMap[e.code]] = true; e.preventDefault(); }
+    if (e.code === "Enter" && state !== "play") startGame();
+  });
+  window.addEventListener("keyup", function (e) {
+    if (keyMap[e.code]) { keys[keyMap[e.code]] = false; }
+  });
+
+  // Мышка и палец: переводим координаты экрана в координаты поля 800 на 500
+  function setTarget(e) {
+    const rect = canvas.getBoundingClientRect();
+    pointerTarget = {
+      x: (e.clientX - rect.left) * (W / rect.width),
+      y: (e.clientY - rect.top)  * (H / rect.height)
+    };
+  }
+  canvas.addEventListener("pointerdown", setTarget);
+  canvas.addEventListener("pointermove", function (e) {
+    if (e.buttons > 0 || e.pointerType === "touch") setTarget(e);
+  });
+
+  // ============ 6. ХОД ИГРЫ ============
+  function startGame() {
+    score = 0; lives = START_LIVES; timeLeft = GAME_TIME; elapsed = 0;
+    player.reset();
+    pointerTarget = null;
+    crystals = [];
+    enemies = [];
+    for (let i = 0; i < 3; i++) enemies.push(new Enemy());
+    state = "play";
+    overlay.classList.add("hidden");
+    lastFrame = performance.now();
+  }
+
+  function endGame(won) {
+    state = "over";
+    if (score > best) { best = score; saveBest(best); }
+    ovTitle.textContent = won ? "Время вышло!" : "Игра окончена";
+    ovText.textContent  = "Собрано кристаллов: " + score + ". Рекорд: " + best + ".";
+    document.getElementById("startBtn").textContent = "Сыграть ещё раз";
+    overlay.classList.remove("hidden");
+  }
+
+  function update(dt) {
+    elapsed += dt;
+    timeLeft -= dt;
+    if (timeLeft <= 0) { timeLeft = 0; endGame(true); return; }
+
+    player.update(dt);
+
+    // Держим на поле три кристалла
+    while (crystals.length < 3) crystals.push(new Crystal());
+
+    // Каждые 10 секунд добавляем врага (но не больше 8)
+    const wanted = Math.min(8, 3 + Math.floor(elapsed / 10));
+    while (enemies.length < wanted) enemies.push(new Enemy());
+
+    enemies.forEach(function (en) { en.update(dt); });
+
+    // Столкновение с кристаллами
+    crystals = crystals.filter(function (c) {
+      if (distance(player, c) < player.r + c.r) {
+        score++;
+        return false;              // убираем собранный кристалл
+      }
+      return true;
+    });
+
+    // Столкновение с врагами
+    if (player.invincible <= 0) {
+      for (const en of enemies) {
+        if (distance(player, en) < player.r + en.r - 4) {
+          lives--;
+          player.invincible = 1.5;   // полторы секунды без урона
+          if (lives <= 0) { lives = 0; endGame(false); return; }
+          break;
+        }
+      }
+    }
+  }
+
+  // ============ 7. РИСОВАНИЕ ============
+  function drawGrid() {
+    ctx.strokeStyle = "rgba(120, 110, 220, 0.18)";
+    ctx.lineWidth = 1;
+    for (let x = 0; x <= W; x += 50) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
+    for (let y = 0; y <= H; y += 50) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
+  }
+
+  function draw(time) {
+    ctx.clearRect(0, 0, W, H);       // стираем прошлый кадр
+    drawGrid();
+    crystals.forEach(function (c) { c.draw(time); });
+    enemies.forEach(function (en) { en.draw(); });
+    player.draw();
+  }
+
+  function updateHud() {
+    hudScore.textContent = score;
+    hudLives.textContent = lives;
+    hudTime.textContent  = Math.ceil(timeLeft);
+    hudBest.textContent  = best;
+  }
+
+  // ============ 8. ИГРОВОЙ ЦИКЛ ============
+  // requestAnimationFrame вызывает loop перед каждой перерисовкой экрана
+  function loop(now) {
+    const dt = Math.min((now - lastFrame) / 1000, 0.05);   // секунды между кадрами
+    lastFrame = now;
+
+    if (state === "play") update(dt);
+    draw(now / 1000);
+    updateHud();
+
+    requestAnimationFrame(loop);
+  }
+
+  document.getElementById("startBtn").addEventListener("click", startGame);
+
+  hudBest.textContent = best;
+  requestAnimationFrame(loop);
+</script>
+</body>
+</html>

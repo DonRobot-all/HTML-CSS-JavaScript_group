@@ -1,0 +1,128 @@
+/* ПЕРЕМЕННЫЕ: цвета записаны один раз */
+:root {
+  --bg: #0d0b26;
+  --panel: #1a1745;
+  --line: #38338a;
+  --text: #f4f3ff;
+  --muted: #aaa6e0;
+  --neon: #3df5c8;
+  --pink: #ff4fa0;
+  --gold: #ffd21f;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Trebuchet MS", Arial, sans-serif;
+  line-height: 1.6;
+}
+
+a { color: var(--neon); }
+h1 { font-size: clamp(30px, 5vw, 48px); line-height: 1.1; margin-bottom: 12px; }
+h2 { font-size: 28px; color: var(--gold); margin: 12px 0; }
+.muted { color: var(--muted); }
+
+/* Шапка */
+.top {
+  position: sticky; top: 0; z-index: 10;
+  display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;
+  padding: 14px clamp(16px, 5vw, 60px);
+  background: rgba(13, 11, 38, 0.85);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--line);
+}
+.brand { font-size: 24px; font-weight: bold; letter-spacing: 2px; color: var(--neon); text-decoration: none; }
+.top nav { display: flex; gap: 8px; }
+.top nav a { color: var(--text); text-decoration: none; padding: 8px 16px; border-radius: 999px; border: 1px solid transparent; transition: 0.2s; }
+.top nav a:hover { border-color: var(--neon); color: var(--neon); }
+
+main { max-width: 1000px; margin: 0 auto; padding: 30px 20px; display: grid; gap: 30px; }
+footer { text-align: center; color: var(--muted); padding: 30px 20px; border-top: 1px solid var(--line); }
+
+/* Кнопки */
+.btn {
+  display: inline-block; background: var(--neon); color: var(--bg);
+  border: none; border-radius: 999px; padding: 14px 34px;
+  font-size: 18px; font-weight: bold; text-decoration: none; cursor: pointer;
+  transition: 0.15s;
+}
+.btn:hover { filter: brightness(1.1); transform: translateY(-2px); }
+.btn.small { padding: 10px 22px; font-size: 16px; }
+
+/* Главный блок */
+.hero-banner {
+  background: linear-gradient(135deg, #6a1fd0, #d6247a);
+  border-radius: 24px; padding: 50px 30px;
+}
+.hero-banner p { max-width: 560px; margin-bottom: 22px; font-size: 18px; }
+
+/* Поиск */
+.search {
+  width: 100%; max-width: 420px; padding: 12px 16px; margin-bottom: 18px;
+  background: var(--panel); color: var(--text);
+  border: 2px solid var(--line); border-radius: 12px; font-size: 16px;
+}
+.search:focus { outline: none; border-color: var(--neon); }
+
+/* Карточки бойцов */
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 16px; }
+.card {
+  background: var(--panel); border: 2px solid var(--line); border-radius: 18px;
+  padding: 20px 12px; text-align: center; text-decoration: none; color: var(--text);
+  transition: 0.2s;
+}
+.card:hover { transform: translateY(-6px); border-color: var(--neon); }
+.card .emoji { font-size: 56px; }
+.card h3 { margin-top: 6px; }
+.role { color: var(--muted); }
+[hidden] { display: none !important; }
+
+/* Страница бойца */
+.detail { display: grid; grid-template-columns: auto 1fr; gap: 30px; align-items: center; background: var(--panel); border: 2px solid var(--line); border-radius: 24px; padding: 30px; }
+.big-emoji { font-size: 120px; line-height: 1; }
+.stat { display: grid; grid-template-columns: 100px 1fr 40px; gap: 10px; align-items: center; margin-top: 12px; }
+.bar { height: 14px; background: var(--bg); border-radius: 999px; overflow: hidden; }
+.bar i { display: block; height: 100%; background: linear-gradient(90deg, var(--neon), var(--gold)); animation: fill 1s ease-out; }
+@keyframes fill { from { width: 0; } }
+
+/* Таблица рекордов */
+.scores { list-style: none; counter-reset: place; background: var(--panel); border: 2px solid var(--line); border-radius: 18px; overflow: hidden; }
+.scores li { counter-increment: place; display: flex; align-items: center; gap: 12px; padding: 10px 18px; border-bottom: 1px solid var(--line); }
+.scores li:last-child { border-bottom: none; }
+.scores li::before { content: counter(place); width: 28px; height: 28px; border-radius: 50%; background: var(--gold); color: var(--bg); display: flex; align-items: center; justify-content: center; font-weight: bold; flex: none; }
+.scores li.empty { counter-increment: none; color: var(--muted); }
+.scores li.empty::before { display: none; }
+.who { flex: 1; overflow-wrap: anywhere; }
+.pts { color: var(--neon); font-weight: bold; }
+
+/* Страница игры */
+.play-layout { display: grid; grid-template-columns: 1fr 260px; gap: 24px; align-items: start; }
+.game-col { min-width: 0; }
+#hud { display: flex; gap: 10px; margin-bottom: 10px; }
+#hud div { flex: 1; background: var(--panel); border: 2px solid var(--line); border-radius: 12px; padding: 6px; text-align: center; }
+#hud b { display: block; font-size: 22px; color: var(--neon); }
+#hud small { color: var(--muted); }
+.stage { position: relative; }
+canvas { width: 100%; height: auto; display: block; background: #15123f; border: 3px solid var(--neon); border-radius: 16px; touch-action: none; }
+#overlay {
+  position: absolute; inset: 0; border-radius: 16px; padding: 16px;
+  background: rgba(13, 11, 38, 0.88);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; text-align: center;
+}
+#overlay.hidden { display: none; }
+#overlay h2 { margin: 0; }
+#overlay p { max-width: 460px; }
+#scoreForm { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+#scoreForm input { padding: 10px 14px; border-radius: 10px; border: 2px solid var(--line); background: var(--panel); color: var(--text); font-size: 16px; width: 200px; }
+
+/* Телефон */
+@media (max-width: 800px) {
+  .play-layout { grid-template-columns: 1fr; }
+  .detail { grid-template-columns: 1fr; text-align: center; }
+  .stat { text-align: left; }
+}
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}

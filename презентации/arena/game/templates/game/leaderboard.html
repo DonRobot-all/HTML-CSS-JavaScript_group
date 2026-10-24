@@ -1,0 +1,23 @@
+{% extends "game/base.html" %}
+{% load static %}
+
+{% block title %}Рекорды. Арена бойцов{% endblock %}
+
+{% block content %}
+  <h1>Таблица рекордов</h1>
+  <p class="muted">Таблица обновляется сама каждые 10 секунд. JavaScript спрашивает у сервера новые данные.</p>
+
+  {% include "game/_scores.html" %}
+
+  <button class="btn small" id="refreshBtn" type="button">Обновить сейчас</button>
+{% endblock %}
+
+{% block scripts %}
+  <script src="{% static 'game/js/scores.js' %}"></script>
+  <script>
+    // Короткий скрипт страницы: обновляем таблицу по таймеру и по кнопке
+    const list = document.getElementById("scores");
+    document.getElementById("refreshBtn").addEventListener("click", function () { refreshScores(list); });
+    setInterval(function () { refreshScores(list); }, 10000);
+  </script>
+{% endblock %}

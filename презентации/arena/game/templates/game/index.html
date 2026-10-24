@@ -1,0 +1,40 @@
+{% extends "game/base.html" %}
+{% load static %}
+
+{% block content %}
+  <section class="hero-banner">
+    <h1>Арена бойцов</h1>
+    <p>Сайт на Django. Бойцы лежат в базе данных, игра работает на JavaScript, а рекорды сохраняются на сервере.</p>
+    <a class="btn" href="{% url 'play' %}">Играть</a>
+  </section>
+
+  <section>
+    <h2>Бойцы</h2>
+    <input type="search" id="search" class="search" placeholder="Найти бойца по имени или роли" autocomplete="off">
+
+    <div class="cards" id="cards">
+      {# Цикл шаблона: для каждого бойца из базы рисуем карточку #}
+      {% for hero in heroes %}
+        <a class="card" href="{% url 'hero_detail' hero.pk %}"
+           data-search="{{ hero.name|lower }} {{ hero.role|lower }}">
+          <div class="emoji">{{ hero.emoji }}</div>
+          <h3>{{ hero.name }}</h3>
+          <p class="role">{{ hero.role }}</p>
+        </a>
+      {% empty %}
+        <p>Бойцов пока нет. Добавь их в админке: /admin/</p>
+      {% endfor %}
+    </div>
+    <p id="noResults" class="muted" hidden>Никого не нашли.</p>
+  </section>
+
+  <section>
+    <h2>Лидеры</h2>
+    {% include "game/_scores.html" %}
+    <p><a href="{% url 'leaderboard' %}">Вся таблица рекордов</a></p>
+  </section>
+{% endblock %}
+
+{% block scripts %}
+  <script src="{% static 'game/js/filter.js' %}"></script>
+{% endblock %}
