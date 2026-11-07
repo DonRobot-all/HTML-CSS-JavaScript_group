@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<!-- УРОВЕНЬ 3+ · «Зарядка суперсилы»
+     Две темы: ФОРМЫ И ВВОД (input, submit, preventDefault, value) и ТАЙМЕРЫ
+     (setInterval, clearInterval, setTimeout).
+     Больше ничего: ни классов, ни массивов объектов, ни хранилища. -->
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Зарядка суперсилы</title>
+
+  <style>
+    :root { --bg:#14123a; --panel:#24215c; --line:#3a3688; --gold:#ffd21f; --ok:#2fd18b; --bad:#ff5c7a; --text:#f3f2ff; --muted:#b4b1e6; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--text); font-family: "Trebuchet MS", Arial, sans-serif; padding: 24px 16px 40px; }
+    main { max-width: 520px; margin: 0 auto; }
+    h1 { text-align: center; color: var(--gold); margin: 0 0 4px; }
+    .sub { text-align: center; color: var(--muted); margin: 0 0 16px; }
+
+    /* Часы, которые идут сами */
+    #clock { text-align: center; color: var(--muted); font-size: 18px; margin-bottom: 16px; }
+    #clock b { color: var(--text); font-size: 22px; }
+
+    .panel { background: var(--panel); border: 2px solid var(--line); border-radius: 20px; padding: 22px; margin-bottom: 16px; }
+
+    /* Форма */
+    label { display: block; margin-bottom: 14px; font-size: 18px; }
+    input {
+      display: block; width: 100%; margin-top: 6px; padding: 12px; font-size: 20px;
+      border: 2px solid var(--line); border-radius: 10px; background: var(--bg); color: var(--text);
+    }
+    input:focus { outline: none; border-color: var(--gold); }
+    #hello { color: var(--gold); min-height: 1.4em; margin: 0 0 12px; font-size: 20px; }
+    #error { color: var(--bad); min-height: 1.4em; margin: 0 0 8px; }
+
+    .row { display: flex; gap: 10px; }
+    button { font-family: inherit; font-size: 20px; font-weight: bold; border: none; border-radius: 12px; padding: 12px 20px; cursor: pointer; }
+    #startBtn { flex: 1; background: var(--gold); color: #14123a; }
+    #stopBtn { background: var(--bad); color: #fff; }
+    button:disabled { opacity: 0.4; cursor: default; }
+
+    /* Таймер */
+    #count { text-align: center; font-size: 96px; font-weight: bold; color: var(--gold); margin: 0; line-height: 1.1; }
+    #status { text-align: center; color: var(--muted); font-size: 20px; margin: 4px 0 16px; }
+    .bar { height: 22px; background: var(--bg); border: 2px solid var(--line); border-radius: 999px; overflow: hidden; }
+    #fill { height: 100%; width: 0; background: var(--ok); transition: width 1s linear; }
+
+    /* Сообщение о готовности */
+    #ready { text-align: center; font-size: 28px; font-weight: bold; color: var(--ok); margin: 16px 0 0; }
+    .hidden { display: none; }
+  </style>
+</head>
+
+<body>
+<main>
+  <h1>Зарядка суперсилы</h1>
+  <p class="sub">Введи имя бойца и время зарядки, а потом смотри, как идёт таймер</p>
+
+  <div id="clock">Сейчас: <b id="now"></b></div>
+
+  <!-- ФОРМА -->
+  <form class="panel" id="form" novalidate>   <!-- novalidate: проверку делаем сами в JS -->
+    <label>Имя бойца
+      <input id="nameInput" placeholder="Например, Аня" maxlength="16">
+    </label>
+    <p id="hello"></p>
+    <label>Сколько секунд заряжать (от 3 до 60)
+      <input id="secInput" type="number" value="10" min="3" max="60">
+    </label>
+    <p id="error"></p>
+    <div class="row">
+      <button id="startBtn" type="submit">Начать зарядку</button>
+      <button id="stopBtn" type="button" disabled>Стоп</button>
+    </div>
+  </form>
+
+  <!-- ТАЙМЕР -->
+  <div class="panel">
+    <p id="count">0</p>
+    <p id="status">Таймер ждёт</p>
+    <div class="bar"><div id="fill"></div></div>
+    <p id="ready" class="hidden"></p>
+  </div>
+</main>
+
+<script>
+  // ЭЛЕМЕНТЫ СТРАНИЦЫ
+  const form     = document.getElementById("form");
+  const nameIn   = document.getElementById("nameInput");
+  const secIn    = document.getElementById("secInput");
+  const hello    = document.getElementById("hello");
+  const errorEl  = document.getElementById("error");
+  const startBtn = document.getElementById("startBtn");
+  const stopBtn  = document.getElementById("stopBtn");
+  const countEl  = document.getElementById("count");
+  const statusEl = document.getElementById("status");
+  const fillEl   = document.getElementById("fill");
+  const readyEl  = document.getElementById("ready");
+  const nowEl    = document.getElementById("now");
+
+  // ПЕРЕМЕННЫЕ
+  let timerId = null;   // номер таймера: по нему его можно остановить
+  let left = 0;         // сколько секунд осталось
+  let total = 0;        // сколько секунд всего
+
+  // 1. ЧАСЫ: каждую секунду показываем текущее время
+  function showClock() {
+    const d = new Date();
+    const h = d.getHours();
+    const m = d.getMinutes();
+    const s = d.getSeconds();
+    nowEl.textContent =
+      (h < 10 ? "0" + h : h) + ":" + (m < 10 ? "0" + m : m) + ":" + (s < 10 ? "0" + s : s);
+  }
+  showClock();
+  setInterval(showClock, 1000);
+
+  // 2. ВВОД: приветствие меняется, пока игрок печатает (событие input)
+  nameIn.addEventListener("input", function () {
+    const name = nameIn.value.trim();
+    hello.textContent = name === "" ? "" : "Привет, " + name + "!";
+  });
+
+  // 3. ТАЙМЕР
+  function stopTimer() {
+    clearInterval(timerId);          // выключаем повторение
+    timerId = null;
+    startBtn.disabled = false;
+    stopBtn.disabled = true;
+  }
+
+  function tick() {
+    left--;
+    countEl.textContent = left;
+    fillEl.style.width = ((total - left) / total * 100) + "%";
+
+    if (left === 0) {
+      stopTimer();
+      statusEl.textContent = "Зарядка закончена";
+      readyEl.textContent = "Суперсила готова! " + nameIn.value.trim() + " в бой!";
+      readyEl.classList.remove("hidden");
+
+      // setTimeout: через 4 секунды сообщение само исчезает
+      setTimeout(function () {
+        readyEl.classList.add("hidden");
+      }, 4000);
+    }
+  }
+
+  // 4. ФОРМА: нажатие кнопки «Начать зарядку»
+  form.addEventListener("submit", function (event) {
+    event.preventDefault();           // страница не перезагружается
+
+    const name = nameIn.value.trim();
+    const seconds = Number(secIn.value);
+
+    // Проверяем, что ввёл игрок
+    if (name === "") {
+      errorEl.textContent = "Введи имя бойца";
+      return;
+    }
+    if (!(seconds >= 3 && seconds <= 60)) {
+      errorEl.textContent = "Секунд должно быть от 3 до 60";
+      return;
+    }
+    errorEl.textContent = "";
+
+    // Запускаем
+    total = seconds;
+    left = seconds;
+    countEl.textContent = left;
+    fillEl.style.width = "0%";
+    readyEl.classList.add("hidden");
+    statusEl.textContent = name + " заряжает суперсилу...";
+    startBtn.disabled = true;         // второй таймер запустить нельзя
+    stopBtn.disabled = false;
+    timerId = setInterval(tick, 1000);
+  });
+
+  // 5. Кнопка «Стоп»
+  stopBtn.addEventListener("click", function () {
+    stopTimer();
+    statusEl.textContent = "Зарядка остановлена";
+  });
+</script>
+</body>
+</html>

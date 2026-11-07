@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<!-- УРОВЕНЬ 3+ · ВЫШЕ СРЕДНЕГО · «Память бойцов» (найди пары)
+     Что нужно знать: класс (class), массив объектов, spread, деструктуризация,
+     map / filter / every, делегирование событий (e.target, dataset),
+     форма и preventDefault, setTimeout, setInterval / clearInterval,
+     localStorage + JSON, try/catch, classList.
+     Сложнее викторины (там нет классов и таймеров), но проще игры на canvas. -->
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Память бойцов</title>
+
+  <style>
+    :root { --bg:#14123a; --panel:#24215c; --line:#3a3688; --gold:#ffd21f; --ok:#2fd18b; --text:#f3f2ff; --muted:#b4b1e6; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--text); font-family: "Trebuchet MS", Arial, sans-serif; padding: 20px 16px 40px; }
+    main { max-width: 640px; margin: 0 auto; }
+    h1 { text-align: center; color: var(--gold); margin: 0 0 4px; }
+    .sub { text-align: center; color: var(--muted); margin: 0 0 16px; }
+    .hidden { display: none !important; }   /* !important нужен: у #win свой display */
+
+    /* Форма с именем игрока */
+    #nameForm { display: flex; gap: 8px; margin-bottom: 14px; }
+    #nameForm input {
+      flex: 1; min-width: 0; padding: 10px 12px; font-size: 18px; border-radius: 10px;
+      border: 2px solid var(--line); background: var(--panel); color: var(--text);
+    }
+    button { font-family: inherit; cursor: pointer; }
+    .btn {
+      background: var(--gold); color: #14123a; border: none; border-radius: 10px;
+      padding: 10px 18px; font-size: 18px; font-weight: bold;
+    }
+    .btn:hover { filter: brightness(1.1); }
+
+    /* Выбор сложности */
+    #levels { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 8px; }
+    #levels button {
+      background: var(--panel); color: var(--text); border: 2px solid var(--line);
+      border-radius: 10px; padding: 10px 6px; font-size: 18px;
+    }
+    #levels button.active { border-color: var(--gold); color: var(--gold); }
+    #record { text-align: center; color: var(--muted); margin: 0 0 14px; min-height: 1.4em; }
+
+    /* Табло */
+    #hud { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 14px; }
+    #hud div { background: var(--panel); border: 2px solid var(--line); border-radius: 12px; padding: 8px; text-align: center; }
+    #hud b { display: block; font-size: 24px; color: var(--gold); }
+    #hud small { color: var(--muted); }
+
+    /* Игровое поле */
+    .stage { position: relative; }
+    #board { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+    .card {
+      aspect-ratio: 1; border: 3px solid var(--line); border-radius: 14px;
+      background: var(--panel); color: var(--muted);
+      font-size: clamp(28px, 9vw, 52px); font-weight: bold; padding: 0;
+      transition: transform 0.2s, background 0.2s;
+    }
+    .card:hover { border-color: var(--gold); }
+    .card.open { background: #fff; transform: scale(1.05); }
+    .card.done { background: #124d3a; border-color: var(--ok); transform: none; }
+
+    /* Окно победы поверх поля */
+    #win {
+      position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center;
+      justify-content: center; gap: 8px; text-align: center; padding: 16px;
+      background: rgba(20, 18, 58, 0.93); border-radius: 14px;
+    }
+    #win h2 { margin: 0; color: var(--gold); font-size: 30px; }
+    #win p { margin: 0; font-size: 20px; }
+  </style>
+</head>
+
+<body>
+<main>
+  <h1>Память бойцов</h1>
+  <p class="sub">Открывай по две карточки и находи одинаковых героев</p>
+
+  <!-- ФОРМА С ИМЕНЕМ -->
+  <form id="nameForm">
+    <input id="nameInput" placeholder="Как тебя зовут?" maxlength="16">
+    <button class="btn" type="submit">Готово</button>
+  </form>
+
+  <!-- ВЫБОР СЛОЖНОСТИ: число пар лежит в data-pairs -->
+  <div id="levels">
+    <button data-pairs="4">Лёгкий</button>
+    <button data-pairs="6">Средний</button>
+    <button data-pairs="8">Сложный</button>
+  </div>
+  <p id="record"></p>
+
+  <!-- ТАБЛО -->
+  <div id="hud">
+    <div><b id="moves">0</b><small>ходов</small></div>
+    <div><b id="time">0:00</b><small>время</small></div>
+    <div><b id="pairs">0</b><small>пар найдено</small></div>
+  </div>
+
+  <!-- ПОЛЕ И ОКНО ПОБЕДЫ -->
+  <div class="stage">
+    <div id="board"></div>
+    <div id="win" class="hidden">
+      <h2 id="winTitle"></h2>
+      <p id="winText"></p>
+      <p id="winRecord"></p>
+      <button class="btn" id="again">Играть ещё раз</button>
+    </div>
+  </div>
+</main>
+
+<script>
+  // БОЙЦЫ. Эмодзи вместо картинок. Добавь своих героев, и поле станет разнообразнее.
+  const heroes = [
+    { emoji: "🤠", name: "Ковбой" },
+    { emoji: "🦂", name: "Скорпион" },
+    { emoji: "🐻", name: "Медведь" },
+    { emoji: "🤖", name: "Робот" },
+    { emoji: "🧙", name: "Волшебник" },
+    { emoji: "🦖", name: "Динозавр" },
+    { emoji: "🐙", name: "Осьминог" },
+    { emoji: "🦊", name: "Лис" }
+  ];
+
+  // ЭЛЕМЕНТЫ СТРАНИЦЫ
+  const nameForm  = document.getElementById("nameForm");
+  const nameInput = document.getElementById("nameInput");
+  const levelsEl  = document.getElementById("levels");
+  const recordEl  = document.getElementById("record");
+  const boardEl   = document.getElementById("board");
+  const winEl     = document.getElementById("win");
+  const movesEl   = document.getElementById("moves");
+  const timeEl    = document.getElementById("time");
+  const pairsEl   = document.getElementById("pairs");
+
+  // ---------- ХРАНИЛИЩЕ: имя и рекорды ----------
+  // Рекорды лежат одним объектом: { "4": {moves: 7, sec: 25}, "6": {...} }
+  function loadRecords() {
+    try { return JSON.parse(localStorage.getItem("memoryRecords")) ?? {}; }
+    catch (e) { return {}; }
+  }
+  function saveRecords(records) {
+    try { localStorage.setItem("memoryRecords", JSON.stringify(records)); }
+    catch (e) { /* хранилище недоступно: играем без рекордов */ }
+  }
+  function loadName() {
+    try { return localStorage.getItem("memoryName") ?? "Боец"; }
+    catch (e) { return "Боец"; }
+  }
+  function saveName(value) {
+    try { localStorage.setItem("memoryName", value); }
+    catch (e) { /* ничего не делаем */ }
+  }
+
+  // ---------- ПОМОЩНИКИ ----------
+  // Время в формате 1:05
+  function formatTime(sec) {
+    const m = Math.floor(sec / 60);
+    const s = sec % 60;
+    return m + ":" + (s < 10 ? "0" + s : s);
+  }
+
+  // Перемешивание массива: идём с конца и меняем с случайным местом
+  function shuffle(list) {
+    const result = [...list];                       // копия, исходный массив не трогаем
+    for (let i = result.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [result[i], result[j]] = [result[j], result[i]];
+    }
+    return result;
+  }
+
+  // ---------- КЛАСС ИГРЫ ----------
+  class Game {
+    constructor(pairs) {
+      this.pairs   = pairs;     // сколько пар в раунде
+      this.moves   = 0;         // сколько ходов сделано
+      this.found   = 0;         // сколько пар найдено
+      this.sec     = 0;         // секунд прошло
+      this.open    = [];        // номера двух открытых карточек
+      this.busy    = false;     // true, пока неверная пара ещё видна
+      this.timerId = null;      // номер таймера, чтобы его остановить
+
+      // Берём нужное число героев, удваиваем и перемешиваем
+      const chosen = heroes.slice(0, pairs);
+      this.cards = shuffle([...chosen, ...chosen]).map(function (hero) {
+        return { emoji: hero.emoji, flipped: false, matched: false };
+      });
+    }
+
+    // Нарисовать поле заново
+    render() {
+      boardEl.innerHTML = "";
+      this.cards.forEach(function (card, index) {
+        const btn = document.createElement("button");
+        btn.className = "card";
+        btn.dataset.index = index;       // запоминаем номер карточки в атрибуте data-index
+        btn.textContent = "?";
+        boardEl.append(btn);
+      });
+      this.updateHud();
+    }
+
+    // Обновить вид одной карточки
+    paint(index) {
+      const card = this.cards[index];
+      const btn = boardEl.children[index];
+      btn.textContent = (card.flipped || card.matched) ? card.emoji : "?";
+      btn.classList.toggle("open", card.flipped && !card.matched);
+      btn.classList.toggle("done", card.matched);
+    }
+
+    updateHud() {
+      movesEl.textContent = this.moves;
+      timeEl.textContent  = formatTime(this.sec);
+      pairsEl.textContent = this.found + " из " + this.pairs;
+    }
+
+    // Секундомер запускается при первом открытии карточки
+    startTimer() {
+      if (this.timerId !== null) return;
+      this.timerId = setInterval(() => {
+        this.sec++;
+        this.updateHud();
+      }, 1000);
+    }
+
+    // Игрок нажал на карточку с номером index
+    flip(index) {
+      const card = this.cards[index];
+      if (this.busy || card.flipped || card.matched) return;   // нельзя открыть то, что уже открыто
+
+      this.startTimer();
+      card.flipped = true;
+      this.open.push(index);
+      this.paint(index);
+
+      if (this.open.length === 2) {
+        this.moves++;
+        this.check();
+      }
+      this.updateHud();
+    }
+
+    // Проверяем, одинаковы ли две открытые карточки
+    check() {
+      const [first, second] = this.open;               // деструктуризация массива
+      const a = this.cards[first];
+      const b = this.cards[second];
+
+      if (a.emoji === b.emoji) {
+        a.matched = b.matched = true;
+        a.flipped = b.flipped = false;
+        this.found++;
+        this.open = [];
+        this.paint(first);
+        this.paint(second);
+        if (this.cards.every(function (c) { return c.matched; })) {
+          this.finish();                               // все карточки найдены
+        }
+      } else {
+        this.busy = true;                              // пока пара видна, другие не открываем
+        setTimeout(() => {
+          a.flipped = b.flipped = false;
+          this.open = [];
+          this.paint(first);
+          this.paint(second);
+          this.busy = false;
+        }, 800);
+      }
+    }
+
+    // Победа: останавливаем время и показываем итог
+    finish() {
+      clearInterval(this.timerId);
+      this.timerId = null;
+
+      const records = loadRecords();
+      const old = records[this.pairs];                 // прошлый рекорд для этого уровня
+      const better = !old || this.moves < old.moves ||
+                     (this.moves === old.moves && this.sec < old.sec);
+      if (better) {
+        records[this.pairs] = { moves: this.moves, sec: this.sec };
+        saveRecords(records);
+      }
+
+      document.getElementById("winTitle").textContent = "Победа!";
+      document.getElementById("winText").textContent =
+        `${loadName()}, ты нашёл все пары за ${this.moves} ходов и ${formatTime(this.sec)}.`;
+      document.getElementById("winRecord").textContent =
+        better ? "Новый рекорд!" : `Рекорд: ${old.moves} ходов, ${formatTime(old.sec)}`;
+      winEl.classList.remove("hidden");
+      showRecord(this.pairs);
+    }
+
+    // Остановить таймер, если игру бросили посередине
+    stop() {
+      clearInterval(this.timerId);
+      this.timerId = null;
+    }
+  }
+
+  // ---------- УПРАВЛЕНИЕ ----------
+  let game = null;          // текущая игра
+  let currentPairs = 4;     // выбранная сложность
+
+  function showRecord(pairs) {
+    const best = loadRecords()[pairs];
+    recordEl.textContent = best
+      ? `Твой рекорд: ${best.moves} ходов, ${formatTime(best.sec)}`
+      : "Рекорда пока нет. Сыграй первым!";
+  }
+
+  function newGame(pairs) {
+    if (game) game.stop();                              // старый секундомер выключаем
+    currentPairs = pairs;
+    game = new Game(pairs);
+    game.render();
+    winEl.classList.add("hidden");
+
+    // Подсвечиваем выбранный уровень
+    levelsEl.querySelectorAll("button").forEach(function (btn) {
+      btn.classList.toggle("active", Number(btn.dataset.pairs) === pairs);
+    });
+    showRecord(pairs);
+  }
+
+  // Один обработчик на всё поле (делегирование): смотрим, на что нажали
+  boardEl.addEventListener("click", function (e) {
+    const btn = e.target;
+    if (btn.dataset.index === undefined) return;        // нажали мимо карточки
+    game.flip(Number(btn.dataset.index));
+  });
+
+  // Один обработчик на кнопки уровней
+  levelsEl.addEventListener("click", function (e) {
+    if (e.target.dataset.pairs === undefined) return;
+    newGame(Number(e.target.dataset.pairs));
+  });
+
+  document.getElementById("again").addEventListener("click", function () {
+    newGame(currentPairs);
+  });
+
+  // Форма имени: отменяем перезагрузку страницы и сохраняем имя
+  nameForm.addEventListener("submit", function (e) {
+    e.preventDefault();
+    const name = nameInput.value.trim() || "Боец";
+    saveName(name);
+    nameInput.value = "";
+    nameInput.placeholder = "Привет, " + name + "!";
+  });
+
+  // Старт
+  nameInput.placeholder = "Привет, " + loadName() + "! Измени имя";
+  newGame(4);
+</script>
+</body>
+</html>
